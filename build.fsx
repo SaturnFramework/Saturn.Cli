@@ -1,3 +1,4 @@
+open System.Text.RegularExpressions
 // --------------------------------------------------------------------------------------
 // FAKE build script
 // --------------------------------------------------------------------------------------
@@ -15,12 +16,12 @@ open Octokit
 // Information about the project to be used at NuGet and in AssemblyInfo files
 // --------------------------------------------------------------------------------------
 
-let project = "Saturn"
+let project = "dotnet-saturn"
 
-let summary = "Opinionated, web development framework for F# which implements the server-side, functional MVC pattern"
+let summary = "A dotnet CLI tool for Saturn projects"
 
 let gitOwner = "Krzysztof-Cieslak"
-let gitName = "Saturn"
+let gitName = "Saturn.Dotnet"
 let gitHome = "https://github.com/" + gitOwner
 
 
@@ -28,7 +29,7 @@ let gitHome = "https://github.com/" + gitOwner
 // Build variables
 // --------------------------------------------------------------------------------------
 
-let buildDir  = "./build/"
+let buildDir  = FullName "./build/"
 let dotnetcliVersion = "2.1.3"
 
 Environment.CurrentDirectory <- __SOURCE_DIRECTORY__
@@ -85,14 +86,15 @@ Target "Build" (fun _ ->
 // Release Targets
 // --------------------------------------------------------------------------------------
 
+
+
 Target "Pack" (fun _ ->
-    Paket.Pack (fun p ->
+    DotNetCli.Pack (fun p ->
         { p with
-            BuildConfig = "Release";
+            WorkingDir = "./src/dotnet-saturn"
+            Configuration = "Release";
             OutputPath = buildDir;
-            Version = release.NugetVersion
-            ReleaseNotes = String.concat "\n" release.Notes
-            MinimumFromLockFile = true
+            AdditionalArgs = [sprintf "/p:Version=%s" release.NugetVersion ]
         }
     )
 )

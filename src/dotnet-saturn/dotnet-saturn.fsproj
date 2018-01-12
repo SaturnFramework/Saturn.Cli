@@ -1,13 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
-    <TargetFramework>netcoreapp2.0</TargetFramework>
+    <Description>A dotnet CLI tool for Saturn projects</Description>
+    <Authors>Krzysztof Cieslak</Authors>
+    <Copyright>Copyright 2017 Lambda Factory</Copyright>
+    <PackageLicenseUrl>https://github.com/Krzysztof-Cieslak/Saturn.Dotnet/blob/master/LICENSE.md</PackageLicenseUrl>
+    <RepositoryUrl>https://github.com/Krzysztof-Cieslak/Saturn.Dotnet</RepositoryUrl>
     <DebugType>portable</DebugType>
+    <PackageTags>fsharp;f#;saturn</PackageTags>
+    <PackageType>DotnetCliTool</PackageType>
+    <TargetFramework>netcoreapp2.0</TargetFramework>
+    <RuntimeFrameworkVersion>2.0.0</RuntimeFrameworkVersion>
+    <OutputType>Exe</OutputType>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="AssemblyInfo.fs" />
     <Compile Include="Program.fs" />
-    <None Include="App.config" />
   </ItemGroup>
-  <Import Project="..\..\.paket\Paket.Restore.targets" />
+  <!-- <Import Project="..\..\.paket\Paket.Restore.targets" /> -->
 </Project>
