@@ -355,7 +355,7 @@ let generateHtml (name : string) (names : string) (fields : (string * string) []
 
     let ctn =
         File.ReadAllLines fsProjPath
-        |> Seq.map (fun f -> if f.Trim().StartsWith """<Compile Include="Router.fs" />""" then sprintf "    <Compile Include=\"%s\\%s\" />\n    <Compile Include=\"%s\\%s\" />\n    <Compile Include=\"%s\\%s\" />\n%s" names controlerFn names viewsFn names controlerFn f  else f  )
+        |> Seq.map (fun f -> if f.Trim().StartsWith """<Compile Include="Router.fs" />""" then sprintf "    <Compile Include=\"%s\\%s\" />\n    <Compile Include=\"%s\\%s\" />\n    <Compile Include=\"%s\\%s\" />\n%s" names modelFn names viewsFn names controlerFn f  else f  )
         |> String.concat "\n"
     updateFile(fsProjPath, ctn)
 
