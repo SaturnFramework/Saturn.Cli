@@ -310,6 +310,99 @@ module Controller =
   }
 
 """      names name name
+
+let generateJsonController (name: string) (names : string) (fields : (string * string) []) =
+  sprintf """namespace %s
+
+open Microsoft.AspNetCore.Http
+open Giraffe.Tasks
+open Microsoft.Data.Sqlite
+open Saturn.ControllerHelpers
+open Saturn
+open Saturn.Controller
+
+module Controller =
+  let connectionString = "DataSource=database.sqlite"
+
+  let indexAction (ctx : HttpContext) =
+    task {
+      use db = new SqliteConnection(connectionString)
+      let! result = Database.getAll db
+      match result with
+      | Ok result ->
+        return! Controller.json ctx result
+      | Error ex ->
+        return raise ex
+    }
+
+  let showAction (ctx: HttpContext, id : string) =
+    task {
+      use db = new SqliteConnection(connectionString)
+      let! result = Database.getById db id
+      match result with
+      | Ok (Some result) ->
+        return! Controller.json ctx result
+      | Ok None ->
+        return! Response.notFound ctx "Value not fund"
+      | Error ex ->
+        return raise ex
+    }
+
+  let createAction (ctx: HttpContext) =
+    task {
+      let! input = Controller.getModel<%s> ctx
+      let validateResult = Validation.validate input
+      if validateResult.IsEmpty then
+
+        use db = new SqliteConnection(connectionString)
+        let! result = Database.insert db input
+        match result with
+        | Ok _ ->
+          return! Response.ok ctx ""
+        | Error ex ->
+          return raise ex
+      else
+        return! Response.badRequest ctx "Validation failed"
+    }
+
+  let updateAction (ctx: HttpContext, id : string) =
+    task {
+      let! input = Controller.getModel<%s> ctx
+      let validateResult = Validation.validate input
+      if validateResult.IsEmpty then
+        use db = new SqliteConnection(connectionString)
+        let! result = Database.update db input
+        match result with
+        | Ok _ ->
+          return! Response.ok ctx ""
+        | Error ex ->
+          return raise ex
+      else
+        return! Response.badRequest ctx "Validation failed"
+    }
+
+  let deleteAction (ctx: HttpContext, id : string) =
+    task {
+      use db = new SqliteConnection(connectionString)
+      let! result = Database.delete db id
+      match result with
+      | Ok _ ->
+        return! Response.ok ctx ""
+      | Error ex ->
+        return raise ex
+    }
+
+  let resource = controller {
+    index indexAction
+    show showAction
+    create createAction
+    update updateAction
+    delete deleteAction
+  }
+
+"""      names name name
+
+
 let generateMigration (name: string) (names : string) (fields : (string * string) []) =
     let dir = projDirPath </> ".." </> "Migrations"
     let fsproj = Directory.GetFiles(dir, "*.fsproj", SearchOption.TopDirectoryOnly).[0]
@@ -373,7 +466,7 @@ let generateJson (name : string) (names : string) (fields : (string * string) []
     let controlerFn = (sprintf "%sController.fs" names)
 
     generateFile(dir </> modelFn, generateModel name names fields)
-    generateFile(dir </> controlerFn,  sprintf "module %s.Controller" names)
+    generateFile(dir </> controlerFn, generateJsonController name names fields)
 
     let ctn =
         File.ReadAllLines fsProjPath
