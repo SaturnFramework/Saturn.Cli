@@ -6,7 +6,7 @@
     <Copyright>Copyright 2017 Lambda Factory</Copyright>
     <PackageLicenseUrl>https://github.com/Krzysztof-Cieslak/Saturn.Dotnet/blob/master/LICENSE.md</PackageLicenseUrl>
     <RepositoryUrl>https://github.com/Krzysztof-Cieslak/Saturn.Dotnet</RepositoryUrl>
-    <IconUrl>https://avatars0.githubusercontent.com/u/35305523?s=200</IconUrl>
+    <PackageIconUrl>https://avatars0.githubusercontent.com/u/35305523?s=200</PackageIconUrl>
     <DebugType>portable</DebugType>
     <PackageTags>fsharp;f#;saturn</PackageTags>
     <PackageType>DotnetCliTool</PackageType>
