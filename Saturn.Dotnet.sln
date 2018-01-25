@@ -5,7 +5,7 @@ VisualStudioVersion = 15.0.26124.0
 MinimumVisualStudioVersion = 15.0.26124.0
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{28C88FD7-75B6-4EBE-8F21-6D2DED4FF452}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Saturn.Dotnet", "src\Saturn.Dotnet\Saturn.Dotnet.fsproj", "{348E034A-8F1F-49FE-8AB2-C04E82BBDB2F}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Saturn.Dotnet", "src\Saturn.Dotnet\dotnet-saturn.fsproj", "{348E034A-8F1F-49FE-8AB2-C04E82BBDB2F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
