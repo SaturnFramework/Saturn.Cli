@@ -12,7 +12,6 @@ let fsProjPath =
 let projDirPath =
     Path.GetDirectoryName fsProjPath
 
-
 let (</>) a b = Path.Combine(a,b)
 
 let upper (s: string) =
@@ -31,18 +30,9 @@ let updateFile (path, ctn) =
 
 let generateModel name names (fields : (string * string) []) =
     let id = fields.[0] |> fst
-    let getAllQuery = sprintf "SELECT %s FROM %s" (fields |> Array.map (fst) |> String.concat ", ") names
-    let getByIdQuery = sprintf "SELECT %s FROM %s WHERE %s=@%s" (fields |> Array.map (fst) |> String.concat ", ") names id id
-    let updateQuery = sprintf "UPDATE %s SET %s WHERE %s=@%s" names (fields |> Array.map (fun (n,_) -> n + " = @" + n) |> String.concat ", ") id id
-    let insertQuery = sprintf "INSERT %s(%s) VALUES (%s)" names (fields |> Array.map (fst) |> String.concat ", ") (fields |> Array.map (fun (n,_) -> "@" + n) |> String.concat ", ")
-    let deleteQuery = sprintf "DELETE FROM %s WHERE %s=@%s" names id id
     let fields = fields |> Array.map (fun (n,t) -> sprintf "%s: %s" n t) |> String.concat "\n  "
 
     sprintf """namespace %s
-
-open System.Threading.Tasks
-open Database
-open System.Data.Common
 
 type %s = {
   %s
@@ -60,23 +50,44 @@ module Validation =
       | Some (k,v) -> Map.add k v acc
       | None -> acc
     ) Map.empty
+"""     names name fields id id (upper id)
+
+let generateRepository name names (fields : (string * string) []) =
+  let id = fields.[0] |> fst
+  let getAllQuery = sprintf "SELECT %s FROM %s" (fields |> Array.map (fst) |> String.concat ", ") names
+  let getByIdQuery = sprintf "SELECT %s FROM %s WHERE %s=@%s" (fields |> Array.map (fst) |> String.concat ", ") names id id
+  let updateQuery = sprintf "UPDATE %s SET %s WHERE %s=@%s" names (fields |> Array.map (fun (n,_) -> n + " = @" + n) |> String.concat ", ") id id
+  let insertQuery = sprintf "INSERT %s(%s) VALUES (%s)" names (fields |> Array.map (fst) |> String.concat ", ") (fields |> Array.map (fun (n,_) -> "@" + n) |> String.concat ", ")
+  let deleteQuery = sprintf "DELETE FROM %s WHERE %s=@%s" names id id
+
+  sprintf """namespace %s
+
+open Database
+open Microsoft.Data.Sqlite
+open System.Threading.Tasks
 
 module Database =
-  let getAll (connection:#DbConnection)  : Task<Result<%s seq, exn>> =
+  let getAll connectionString : Task<Result<%s seq, exn>> =
+    use connection = new SqliteConnection(connectionString)
     query connection "%s" None
 
-  let getById (connection:#DbConnection) id : Task<Result<%s option, exn>> =
+  let getById connectionString id : Task<Result<%s option, exn>> =
+    use connection = new SqliteConnection(connectionString)
     querySingle connection "%s" (Some <| dict ["id" => id])
 
-  let update (connection:#DbConnection) v : Task<Result<int,exn>> =
+  let update connectionString v : Task<Result<int,exn>> =
+    use connection = new SqliteConnection(connectionString)
     execute connection "%s" v
 
-  let insert (connection:#DbConnection) v : Task<Result<int,exn>> =
+  let insert connectionString v : Task<Result<int,exn>> =
+    use connection = new SqliteConnection(connectionString)
     execute connection "%s" v
 
-  let delete (connection:#DbConnection) id : Task<Result<int,exn>> =
+  let delete connectionString id : Task<Result<int,exn>> =
+    use connection = new SqliteConnection(connectionString)
     execute connection "%s" (dict ["id" => id])
-"""     names name fields id id (upper id) name getAllQuery name getByIdQuery updateQuery insertQuery deleteQuery
+
+"""   names name getAllQuery name getByIdQuery updateQuery insertQuery deleteQuery
 
 let generateView name names (fields : (string * string) []) =
 
@@ -207,18 +218,17 @@ let generateViewsControler (name: string) (names : string) (fields : (string * s
 
 open Microsoft.AspNetCore.Http
 open Giraffe.Tasks
-open Microsoft.Data.Sqlite
-open Saturn.Context
+open Config
 open Saturn
 open Saturn.Controller
+open Saturn.ControllerHelpers
 
 module Controller =
-  let connectionString = "DataSource=database.sqlite"
 
   let indexAction (ctx : HttpContext) =
     task {
-      use db = new SqliteConnection(connectionString)
-      let! result = Database.getAll db
+      let cnf = Controller.getConfig ctx
+      let! result = Database.getAll cnf.connectionString
       match result with
       | Ok result ->
         return! Controller.render ctx (Views.index ctx (List.ofSeq result))
@@ -228,8 +238,8 @@ module Controller =
 
   let showAction (ctx: HttpContext, id : string) =
     task {
-      use db = new SqliteConnection(connectionString)
-      let! result = Database.getById db id
+      let cnf = Controller.getConfig ctx
+      let! result = Database.getById cnf.connectionString id
       match result with
       | Ok (Some result) ->
         return! Controller.render ctx (Views.show ctx result)
@@ -244,8 +254,8 @@ module Controller =
 
   let editAction (ctx: HttpContext, id : string) =
     task {
-      use db = new SqliteConnection(connectionString)
-      let! result = Database.getById db id
+      let cnf = Controller.getConfig ctx
+      let! result = Database.getById cnf.connectionString id
       match result with
       | Ok (Some result) ->
         return! Controller.render ctx (Views.edit ctx result Map.empty)
@@ -261,8 +271,8 @@ module Controller =
       let validateResult = Validation.validate input
       if validateResult.IsEmpty then
 
-        use db = new SqliteConnection(connectionString)
-        let! result = Database.insert db input
+        let cnf = Controller.getConfig ctx
+        let! result = Database.insert cnf.connectionString input
         match result with
         | Ok _ ->
           return! Controller.redirect ctx (Links.index ctx)
@@ -277,8 +287,8 @@ module Controller =
       let! input = Controller.getModel<%s> ctx
       let validateResult = Validation.validate input
       if validateResult.IsEmpty then
-        use db = new SqliteConnection(connectionString)
-        let! result = Database.update db input
+        let cnf = Controller.getConfig ctx
+        let! result = Database.update cnf.connectionString input
         match result with
         | Ok _ ->
           return! Controller.redirect ctx (Links.index ctx)
@@ -290,8 +300,8 @@ module Controller =
 
   let deleteAction (ctx: HttpContext, id : string) =
     task {
-      use db = new SqliteConnection(connectionString)
-      let! result = Database.delete db id
+      let cnf = Controller.getConfig ctx
+      let! result = Database.delete cnf.connectionString id
       match result with
       | Ok _ ->
         return! Controller.redirect ctx (Links.index ctx)
@@ -316,18 +326,17 @@ let generateJsonController (name: string) (names : string) (fields : (string * s
 
 open Microsoft.AspNetCore.Http
 open Giraffe.Tasks
-open Microsoft.Data.Sqlite
-open Saturn.ControllerHelpers
+open Config
 open Saturn
 open Saturn.Controller
+open Saturn.ControllerHelpers
 
 module Controller =
-  let connectionString = "DataSource=database.sqlite"
 
   let indexAction (ctx : HttpContext) =
     task {
-      use db = new SqliteConnection(connectionString)
-      let! result = Database.getAll db
+      let cnf = Controller.getConfig ctx
+      let! result = Database.getAll cnf.connectionString
       match result with
       | Ok result ->
         return! Controller.json ctx result
@@ -337,8 +346,8 @@ module Controller =
 
   let showAction (ctx: HttpContext, id : string) =
     task {
-      use db = new SqliteConnection(connectionString)
-      let! result = Database.getById db id
+      let cnf = Controller.getConfig ctx
+      let! result = Database.getById cnf.connectionString id
       match result with
       | Ok (Some result) ->
         return! Controller.json ctx result
@@ -354,8 +363,8 @@ module Controller =
       let validateResult = Validation.validate input
       if validateResult.IsEmpty then
 
-        use db = new SqliteConnection(connectionString)
-        let! result = Database.insert db input
+        let cnf = Controller.getConfig ctx
+        let! result = Database.insert cnf.connectionString input
         match result with
         | Ok _ ->
           return! Response.ok ctx ""
@@ -370,8 +379,8 @@ module Controller =
       let! input = Controller.getModel<%s> ctx
       let validateResult = Validation.validate input
       if validateResult.IsEmpty then
-        use db = new SqliteConnection(connectionString)
-        let! result = Database.update db input
+        let cnf = Controller.getConfig ctx
+        let! result = Database.update cnf.connectionString input
         match result with
         | Ok _ ->
           return! Response.ok ctx ""
@@ -383,8 +392,8 @@ module Controller =
 
   let deleteAction (ctx: HttpContext, id : string) =
     task {
-      use db = new SqliteConnection(connectionString)
-      let! result = Database.delete db id
+      let cnf = Controller.getConfig ctx
+      let! result = Database.delete cnf.connectionString id
       match result with
       | Ok _ ->
         return! Response.ok ctx ""
@@ -441,14 +450,17 @@ let generateHtml (name : string) (names : string) (fields : (string * string) []
     let modelFn = (sprintf "%sModel.fs" names)
     let viewsFn = (sprintf "%sViews.fs" names)
     let controlerFn = (sprintf "%sController.fs" names)
+    let repositoryFn = (sprintf "%sRepository.fs" names)
+
 
     generateFile(dir </> modelFn, generateModel name names fields)
     generateFile(dir </> viewsFn,  generateView name names fields)
+    generateFile(dir </> repositoryFn, generateRepository name names fields)
     generateFile(dir </> controlerFn,  generateViewsControler name names fields)
 
     let ctn =
         File.ReadAllLines fsProjPath
-        |> Seq.map (fun f -> if f.Trim().StartsWith """<Compile Include="Router.fs" />""" then sprintf "    <Compile Include=\"%s\\%s\" />\n    <Compile Include=\"%s\\%s\" />\n    <Compile Include=\"%s\\%s\" />\n%s" names modelFn names viewsFn names controlerFn f  else f  )
+        |> Seq.map (fun f -> if f.Trim().StartsWith """<Compile Include="Router.fs" />""" then sprintf "    <Compile Include=\"%s\\%s\" />\n    <Compile Include=\"%s\\%s\" />\n    <Compile Include=\"%s\\%s\" />\n    <Compile Include=\"%s\\%s\" />\n%s" names modelFn names viewsFn names repositoryFn names controlerFn f  else f  )
         |> String.concat "\n"
     updateFile(fsProjPath, ctn)
 
@@ -464,13 +476,16 @@ let generateJson (name : string) (names : string) (fields : (string * string) []
 
     let modelFn = (sprintf "%sModel.fs" names)
     let controlerFn = (sprintf "%sController.fs" names)
+    let repositoryFn = (sprintf "%sRepository.fs" names)
+
 
     generateFile(dir </> modelFn, generateModel name names fields)
+    generateFile(dir </> repositoryFn, generateRepository name names fields)
     generateFile(dir </> controlerFn, generateJsonController name names fields)
 
     let ctn =
         File.ReadAllLines fsProjPath
-        |> Seq.map (fun f -> if f.Trim().StartsWith """<Compile Include="Router.fs" />""" then sprintf "    <Compile Include=\"%s\\%s\" />\n     <Compile Include=\"%s\\%s\" />\n%s" names modelFn names controlerFn f  else f  )
+        |> Seq.map (fun f -> if f.Trim().StartsWith """<Compile Include="Router.fs" />""" then sprintf "    <Compile Include=\"%s\\%s\" />\n     <Compile Include=\"%s\\%s\" />\n     <Compile Include=\"%s\\%s\" />\n%s" names modelFn names repositoryFn names controlerFn f  else f  )
         |> String.concat "\n"
     updateFile(fsProjPath, ctn)
 
@@ -484,11 +499,15 @@ let generateMdl (name : string) (names : string) (fields : (string * string) [])
     Directory.CreateDirectory(dir) |> ignore
 
     let modelFn = (sprintf "%sModel.fs" names)
+    let repositoryFn = (sprintf "%sRepository.fs" names)
+
     generateFile(dir </> modelFn, generateModel name names fields)
+    generateFile(dir </> repositoryFn, generateRepository name names fields)
+
 
     let ctn =
         File.ReadAllLines fsProjPath
-        |> Seq.map (fun f -> if f.Trim().StartsWith """<Compile Include="Router.fs" />""" then sprintf "    <Compile Include=\"%s\\%s\" />\n%s" names modelFn f  else f  )
+        |> Seq.map (fun f -> if f.Trim().StartsWith """<Compile Include="Router.fs" />""" then sprintf "    <Compile Include=\"%s\\%s\" />\n    <Compile Include=\"%s\\%s\" />\n%s" names modelFn names repositoryFn  f  else f  )
         |> String.concat "\n"
     updateFile(fsProjPath, ctn)
 
@@ -515,7 +534,14 @@ let runMigration () =
   printfn "%s" output
 
 let printHelp () =
-    printfn "Avaliable commands:\n  * gen, gen.html - generates the data access layer, controler, and server side views\n  * gen.json - generates the data access layer, and controler returning data in JSON format\n  * gen.model - generates data access layer without controller nor views\n"
+    printfn """Avaliable commands:
+
+  * gen, gen.html - generates the model, data access layer, controler, and server side views
+  * gen.json - generates the model, data access layer, and controler returning data in JSON format
+  * gen.model - generates model, and data access layer without controller nor views
+  * migration - runs migration of database to latest version
+
+"""
 
 [<EntryPoint>]
 let main argv =
