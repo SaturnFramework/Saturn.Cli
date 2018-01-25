@@ -16,7 +16,7 @@ open Octokit
 // Information about the project to be used at NuGet and in AssemblyInfo files
 // --------------------------------------------------------------------------------------
 
-let project = "dotnet-saturn"
+let project = "Saturn.Dotnet"
 
 let summary = "A dotnet CLI tool for Saturn projects"
 
