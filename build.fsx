@@ -91,7 +91,7 @@ Target "Build" (fun _ ->
 Target "Pack" (fun _ ->
     DotNetCli.Pack (fun p ->
         { p with
-            WorkingDir = "./src/dotnet-saturn"
+            WorkingDir = "./src/Saturn.Dotnet"
             Configuration = "Release";
             OutputPath = buildDir;
             AdditionalArgs = [sprintf "/p:Version=%s" release.NugetVersion ]
