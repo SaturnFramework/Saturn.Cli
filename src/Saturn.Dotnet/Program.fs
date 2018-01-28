@@ -472,7 +472,7 @@ Controler generated. You need to add new controler to one of the routeters in Ro
 
 For example:
 
-    forward "\%s" %s.Controller.resource
+    forward "/%s" %s.Controller.resource
 
 
 """   (name.ToLower()) names
@@ -508,7 +508,7 @@ Controler generated. You need to add new controler to one of the routeters in Ro
 
 For example:
 
-    forward "\%s" %s.Controller.resource
+    forward "/%s" %s.Controller.resource
 
 
 """   (name.ToLower()) names
