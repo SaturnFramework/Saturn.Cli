@@ -475,7 +475,7 @@ For example:
     forward "/%s" %s.Controller.resource
 
 
-"""   (name.ToLower()) names
+"""   (names.ToLower()) names
 
 
     ()
@@ -511,7 +511,7 @@ For example:
     forward "/%s" %s.Controller.resource
 
 
-"""   (name.ToLower()) names
+"""   (names.ToLower()) names
 
     ()
 
