@@ -34,6 +34,7 @@ let generateModel name names (fields : (string * string) []) =
 
     sprintf """namespace %s
 
+[<CLIMutable>]
 type %s = {
   %s
 }
@@ -57,7 +58,7 @@ let generateRepository name names (fields : (string * string) []) =
   let getAllQuery = sprintf "SELECT %s FROM %s" (fields |> Array.map (fst) |> String.concat ", ") names
   let getByIdQuery = sprintf "SELECT %s FROM %s WHERE %s=@%s" (fields |> Array.map (fst) |> String.concat ", ") names id id
   let updateQuery = sprintf "UPDATE %s SET %s WHERE %s=@%s" names (fields |> Array.map (fun (n,_) -> n + " = @" + n) |> String.concat ", ") id id
-  let insertQuery = sprintf "INSERT %s(%s) VALUES (%s)" names (fields |> Array.map (fst) |> String.concat ", ") (fields |> Array.map (fun (n,_) -> "@" + n) |> String.concat ", ")
+  let insertQuery = sprintf "INSERT INTO %s(%s) VALUES (%s)" names (fields |> Array.map (fst) |> String.concat ", ") (fields |> Array.map (fun (n,_) -> "@" + n) |> String.concat ", ")
   let deleteQuery = sprintf "DELETE FROM %s WHERE %s=@%s" names id id
 
   sprintf """namespace %s
@@ -464,8 +465,18 @@ let generateHtml (name : string) (names : string) (fields : (string * string) []
         |> String.concat "\n"
     updateFile(fsProjPath, ctn)
 
-
     generateMigration name names fields
+
+    printfn """
+Controler generated. You need to add new controler to one of the routeters in Router.fs file with path you want.
+
+For example:
+
+    forward "\%s" %s.Controller.resource
+
+
+"""   (name.ToLower()) names
+
 
     ()
 
@@ -491,6 +502,16 @@ let generateJson (name : string) (names : string) (fields : (string * string) []
 
 
     generateMigration name names fields
+
+    printfn """
+Controler generated. You need to add new controler to one of the routeters in Router.fs file with path you want.
+
+For example:
+
+    forward "\%s" %s.Controller.resource
+
+
+"""   (name.ToLower()) names
 
     ()
 
