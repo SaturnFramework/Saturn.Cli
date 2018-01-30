@@ -214,7 +214,7 @@ module Views =
     form ctx (Some o) validationResult true
 """    names name names tableHeader tableContent name name name viewItemContent name formContetn name name
 
-let generateViewsControler (name: string) (names : string) (fields : (string * string) []) =
+let generateViewsController (name: string) (names : string) (fields : (string * string) []) =
   sprintf """namespace %s
 
 open Microsoft.AspNetCore.Http
@@ -450,25 +450,25 @@ let generateHtml (name : string) (names : string) (fields : (string * string) []
     Directory.CreateDirectory(dir) |> ignore
     let modelFn = (sprintf "%sModel.fs" names)
     let viewsFn = (sprintf "%sViews.fs" names)
-    let controlerFn = (sprintf "%sController.fs" names)
+    let controllerFn = (sprintf "%sController.fs" names)
     let repositoryFn = (sprintf "%sRepository.fs" names)
 
 
     generateFile(dir </> modelFn, generateModel name names fields)
     generateFile(dir </> viewsFn,  generateView name names fields)
     generateFile(dir </> repositoryFn, generateRepository name names fields)
-    generateFile(dir </> controlerFn,  generateViewsControler name names fields)
+    generateFile(dir </> controllerFn,  generateViewsController name names fields)
 
     let ctn =
         File.ReadAllLines fsProjPath
-        |> Seq.map (fun f -> if f.Trim().StartsWith """<Compile Include="Router.fs" />""" then sprintf "    <Compile Include=\"%s\\%s\" />\n    <Compile Include=\"%s\\%s\" />\n    <Compile Include=\"%s\\%s\" />\n    <Compile Include=\"%s\\%s\" />\n%s" names modelFn names viewsFn names repositoryFn names controlerFn f  else f  )
+        |> Seq.map (fun f -> if f.Trim().StartsWith """<Compile Include="Router.fs" />""" then sprintf "    <Compile Include=\"%s\\%s\" />\n    <Compile Include=\"%s\\%s\" />\n    <Compile Include=\"%s\\%s\" />\n    <Compile Include=\"%s\\%s\" />\n%s" names modelFn names viewsFn names repositoryFn names controllerFn f  else f  )
         |> String.concat "\n"
     updateFile(fsProjPath, ctn)
 
     generateMigration name names fields
 
     printfn """
-Controler generated. You need to add new controler to one of the routeters in Router.fs file with path you want.
+Controller generated. You need to add new controller to one of the routeters in Router.fs file with path you want.
 
 For example:
 
@@ -486,17 +486,17 @@ let generateJson (name : string) (names : string) (fields : (string * string) []
     Directory.CreateDirectory(dir) |> ignore
 
     let modelFn = (sprintf "%sModel.fs" names)
-    let controlerFn = (sprintf "%sController.fs" names)
+    let controllerFn = (sprintf "%sController.fs" names)
     let repositoryFn = (sprintf "%sRepository.fs" names)
 
 
     generateFile(dir </> modelFn, generateModel name names fields)
     generateFile(dir </> repositoryFn, generateRepository name names fields)
-    generateFile(dir </> controlerFn, generateJsonController name names fields)
+    generateFile(dir </> controllerFn, generateJsonController name names fields)
 
     let ctn =
         File.ReadAllLines fsProjPath
-        |> Seq.map (fun f -> if f.Trim().StartsWith """<Compile Include="Router.fs" />""" then sprintf "    <Compile Include=\"%s\\%s\" />\n     <Compile Include=\"%s\\%s\" />\n     <Compile Include=\"%s\\%s\" />\n%s" names modelFn names repositoryFn names controlerFn f  else f  )
+        |> Seq.map (fun f -> if f.Trim().StartsWith """<Compile Include="Router.fs" />""" then sprintf "    <Compile Include=\"%s\\%s\" />\n     <Compile Include=\"%s\\%s\" />\n     <Compile Include=\"%s\\%s\" />\n%s" names modelFn names repositoryFn names controllerFn f  else f  )
         |> String.concat "\n"
     updateFile(fsProjPath, ctn)
 
@@ -504,7 +504,7 @@ let generateJson (name : string) (names : string) (fields : (string * string) []
     generateMigration name names fields
 
     printfn """
-Controler generated. You need to add new controler to one of the routeters in Router.fs file with path you want.
+Controller generated. You need to add new controller to one of the routeters in Router.fs file with path you want.
 
 For example:
 
@@ -557,8 +557,8 @@ let runMigration () =
 let printHelp () =
     printfn """Avaliable commands:
 
-  * gen, gen.html - generates the model, data access layer, controler, and server side views
-  * gen.json - generates the model, data access layer, and controler returning data in JSON format
+  * gen, gen.html - generates the model, data access layer, controller, and server side views
+  * gen.json - generates the model, data access layer, and controller returning data in JSON format
   * gen.model - generates model, and data access layer without controller nor views
   * migration - runs migration of database to latest version
 
