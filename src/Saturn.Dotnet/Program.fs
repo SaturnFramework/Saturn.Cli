@@ -468,7 +468,7 @@ let generateHtml (name : string) (names : string) (fields : (string * string) []
     generateMigration name names fields
 
     printfn """
-Controler generated. You need to add new controler to one of the routeters in Router.fs file with path you want.
+Controler generated. You need to add new controler to one of the routers in Router.fs file with path you want.
 
 For example:
 
@@ -504,7 +504,7 @@ let generateJson (name : string) (names : string) (fields : (string * string) []
     generateMigration name names fields
 
     printfn """
-Controler generated. You need to add new controler to one of the routeters in Router.fs file with path you want.
+Controler generated. You need to add new controler to one of the routers in Router.fs file with path you want.
 
 For example:
 
