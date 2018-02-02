@@ -390,3 +390,4 @@ packages
 *.sln.iml
 
 release.cmd
+release.sh
