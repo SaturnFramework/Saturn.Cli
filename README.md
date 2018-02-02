@@ -2,6 +2,27 @@
 
 `dotnet` CLI tool for [Saturn](https://github.com/Krzysztof-Cieslak/Saturn) providing code generation and scaffolding.
 
+## Commands
+
+`dotnet saturn` supports following commands:
+
+* `gen NAME NAMES COLUMN:TYPE COLUMN:TYPE COLUMN:TYPE ...` - creates model, database layer, views and controller returning HTML views
+* `gen.json NAME NAMES COLUMN:TYPE COLUMN:TYPE COLUMN:TYPE ...` - creates model, database layer and JSON API controller
+* `gen.model NAME NAMES COLUMN:TYPE COLUMN:TYPE COLUMN:TYPE ...` - creates model and database layer
+* `migration` - runs all migration scripts for the databse
+
+## Types
+
+Generator supports following types:
+
+* `string`
+* `int`
+* `float`
+* `double`
+* `decimal`
+* `guid`
+* `datetime`
+* `bool`
 
 ## How to contribute
 

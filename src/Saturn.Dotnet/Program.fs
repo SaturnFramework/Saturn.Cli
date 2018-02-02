@@ -1,7 +1,57 @@
 module Program
 open System.IO
 open System
-open System.Diagnostics
+open System.Diagnostics  
+
+type ParameterType = 
+  | String
+  | Int
+  | Float
+  | Double
+  | Decimal
+  | Guid
+  | DateTime
+  | Bool
+with 
+  static member TryParse x = 
+    match x with
+    | "string" -> String
+    | "int" -> Int
+    | "float" -> Float
+    | "double" -> Double 
+    | "decimal" -> Decimal
+    | "guid" -> Guid
+    | "datetime" -> DateTime
+    | "bool" -> Bool 
+    | _ -> failwithf "Unsupported type - %s" x
+
+type Parameter = {
+  name : string
+  typ : ParameterType
+  nullable : bool
+}
+with 
+  member x.FSharpType =
+    match x.typ with
+    | String -> "string"
+    | Int -> "int"
+    | Float -> "float"
+    | Double -> "double"
+    | Decimal -> "decimal"
+    | Guid -> "System.Guid"
+    | DateTime -> "System.DateTime"
+    | Bool -> "bool"
+  
+  member x.DbType = 
+    match x.typ with
+    | String -> "TEXT"
+    | Int -> "INT"
+    | Float -> "FLOAT"
+    | Double -> "DOUBLE"
+    | Decimal -> "DECIMAL"
+    | Guid -> "TEXT"
+    | DateTime -> "DATETIME"
+    | Bool -> "BOOLEAN"
 
 let fsProjPath =
     let cwd = Directory.GetCurrentDirectory()
@@ -28,9 +78,9 @@ let updateFile (path, ctn) =
     printfn "Updated %s ..." path
     File.WriteAllText(path,ctn)
 
-let generateModel name names (fields : (string * string) []) =
-    let id = fields.[0] |> fst
-    let fields = fields |> Array.map (fun (n,t) -> sprintf "%s: %s" n t) |> String.concat "\n  "
+let generateModel name names (fields : Parameter []) =
+    let id = fields.[0].name
+    let fields = fields |> Array.map (fun f -> sprintf "%s: %s" f.name f.FSharpType) |> String.concat "\n  "
 
     sprintf """namespace %s
 
@@ -53,12 +103,12 @@ module Validation =
     ) Map.empty
 """     names name fields id id (upper id)
 
-let generateRepository name names (fields : (string * string) []) =
-  let id = fields.[0] |> fst
-  let getAllQuery = sprintf "SELECT %s FROM %s" (fields |> Array.map (fst) |> String.concat ", ") names
-  let getByIdQuery = sprintf "SELECT %s FROM %s WHERE %s=@%s" (fields |> Array.map (fst) |> String.concat ", ") names id id
-  let updateQuery = sprintf "UPDATE %s SET %s WHERE %s=@%s" names (fields |> Array.map (fun (n,_) -> n + " = @" + n) |> String.concat ", ") id id
-  let insertQuery = sprintf "INSERT INTO %s(%s) VALUES (%s)" names (fields |> Array.map (fst) |> String.concat ", ") (fields |> Array.map (fun (n,_) -> "@" + n) |> String.concat ", ")
+let generateRepository name names (fields : Parameter []) =
+  let id = fields.[0].name 
+  let getAllQuery = sprintf "SELECT %s FROM %s" (fields |> Array.map (fun f -> f.name) |> String.concat ", ") names
+  let getByIdQuery = sprintf "SELECT %s FROM %s WHERE %s=@%s" (fields |> Array.map (fun f -> f.name) |> String.concat ", ") names id id
+  let updateQuery = sprintf "UPDATE %s SET %s WHERE %s=@%s" names (fields |> Array.map (fun f -> f.name + " = @" + f.name) |> String.concat ", ") id id
+  let insertQuery = sprintf "INSERT INTO %s(%s) VALUES (%s)" names (fields |> Array.map (fun f -> f.name) |> String.concat ", ") (fields |> Array.map (fun f -> "@" + f.name) |> String.concat ", ")
   let deleteQuery = sprintf "DELETE FROM %s WHERE %s=@%s" names id id
 
   sprintf """namespace %s
@@ -90,26 +140,26 @@ module Database =
 
 """   names name getAllQuery name getByIdQuery updateQuery insertQuery deleteQuery
 
-let generateView name names (fields : (string * string) []) =
+let generateView name names (fields : Parameter []) =
 
     let tableHeader =
         fields
-        |> Seq.map (fun (k, _) -> sprintf "th [] [rawText \"%s\"]" (upper k) )
+        |> Seq.map (fun f -> sprintf "th [] [rawText \"%s\"]" (upper f.name) )
         |> String.concat "\n              "
 
     let tableContent =
         fields
-        |> Seq.map (fun (k, _) -> sprintf "td [] [rawText o.%s]" k)
+        |> Seq.map (fun f -> sprintf "td [] [rawText (string o.%s)]" f.name)
         |> String.concat "\n                "
 
     let viewItemContent =
         fields
-        |> Seq.map (fun (k, _) -> sprintf "li [] [ strong [] [rawText \"%s: \"]; rawText o.%s ]" (upper k) k )
+        |> Seq.map (fun f -> sprintf "li [] [ strong [] [rawText \"%s: \"]; rawText (string o.%s) ]" (upper f.name) f.name )
         |> String.concat "\n          "
 
     let formContetn =
         fields
-        |> Seq.map (fun (k, _) -> sprintf """yield field (fun i -> i.%s) "%s" "%s" """ k (upper k) k)
+        |> Seq.map (fun f -> sprintf """yield field (fun i -> (string i.%s)) "%s" "%s" """ f.name (upper f.name) f.name)
         |> String.concat "\n          "
 
     sprintf """namespace %s
@@ -173,7 +223,7 @@ module Views =
 
     let field selector lbl key =
       div [_class "field"] [
-        yield label [_class "label"] [rawText lbl]
+        yield label [_class "label"] [rawText (string lbl)]
         yield div [_class "control has-icons-right"] [
           yield input [_class (if validationResult.ContainsKey key then "input is-danger" else "input"); _value (defaultArg (o |> Option.map selector) ""); _name key ; _type "text" ]
           if validationResult.ContainsKey key then
@@ -214,7 +264,7 @@ module Views =
     form ctx (Some o) validationResult true
 """    names name names tableHeader tableContent name name name viewItemContent name formContetn name name
 
-let generateViewsController (name: string) (names : string) (fields : (string * string) []) =
+let generateViewsController (name: string) (names : string) (_ : Parameter []) =
   sprintf """namespace %s
 
 open Microsoft.AspNetCore.Http
@@ -322,7 +372,7 @@ module Controller =
 
 """      names name name
 
-let generateJsonController (name: string) (names : string) (fields : (string * string) []) =
+let generateJsonController (name: string) (names : string) (_ : Parameter []) =
   sprintf """namespace %s
 
 open Microsoft.AspNetCore.Http
@@ -413,12 +463,12 @@ module Controller =
 """      names name name
 
 
-let generateMigration (name: string) (names : string) (fields : (string * string) []) =
+let generateMigration (name: string) (names : string) (fields : Parameter []) =
     let dir = projDirPath </> ".." </> "Migrations"
     let fsproj = Directory.GetFiles(dir, "*.fsproj", SearchOption.TopDirectoryOnly).[0]
     let id = sprintf "%i%02i%02i%02i%02i" DateTime.Now.Year DateTime.Now.Month DateTime.Now.Day DateTime.Now.Hour DateTime.Now.Minute
     let fn = sprintf "%s.%s.fs" id name
-    let fields = fields |> Array.map (fun (n,t) -> sprintf "%s %s NOT NULL" n t) |> String.concat ",\n      "
+    let fields = fields |> Array.map (fun f -> sprintf "%s %s NOT NULL" f.name f.DbType) |> String.concat ",\n      "
     let content = sprintf """namespace Migrations
 open SimpleMigrations
 
@@ -445,7 +495,7 @@ type Create%s() =
 
     ()
 
-let generateHtml (name : string) (names : string) (fields : (string * string) []) =
+let generateHtml (name : string) (names : string) (fields : Parameter []) =
     let dir = projDirPath </> names
     Directory.CreateDirectory(dir) |> ignore
     let modelFn = (sprintf "%sModel.fs" names)
@@ -481,7 +531,7 @@ For example:
     ()
 
 
-let generateJson (name : string) (names : string) (fields : (string * string) []) =
+let generateJson (name : string) (names : string) (fields : Parameter []) =
     let dir = projDirPath </> names
     Directory.CreateDirectory(dir) |> ignore
 
@@ -515,7 +565,7 @@ For example:
 
     ()
 
-let generateMdl (name : string) (names : string) (fields : (string * string) []) =
+let generateMdl (name : string) (names : string) (fields : Parameter []) =
     let dir = projDirPath </> names
     Directory.CreateDirectory(dir) |> ignore
 
@@ -537,7 +587,7 @@ let generateMdl (name : string) (names : string) (fields : (string * string) [])
 
     ()
 
-let generateGraphQL (name : string) (names : string) (fields : (string * string) []) =
+let generateGraphQL (name : string) (names : string) (fields : Parameter []) =
     ()
 
 let runMigration () =
@@ -575,17 +625,17 @@ let main argv =
             | "gen" | "gen.html" ->
               let name = argv.[1]
               let names = argv.[2]
-              let fields = argv.[3 ..] |> Array.map (fun n -> let x = n.Split(':', 2) in x.[0], x.[1])
+              let fields = argv.[3 ..] |> Array.map (fun n -> let x = n.Split(':', 2) in {name = x.[0]; typ = ParameterType.TryParse x.[1]; nullable = false}) 
               generateHtml name names fields
             | "gen.json" ->
               let name = argv.[1]
               let names = argv.[2]
-              let fields = argv.[3 ..] |> Array.map (fun n -> let x = n.Split(':', 2) in x.[0], x.[1])
-              generateJson name names fields
+              let fields = argv.[3 ..] |> Array.map (fun n -> let x = n.Split(':', 2) in {name = x.[0]; typ = ParameterType.TryParse x.[1]; nullable = false})
+              generateJson name names fields 
             | "gen.model" ->
               let name = argv.[1]
               let names = argv.[2]
-              let fields = argv.[3 ..] |> Array.map (fun n -> let x = n.Split(':', 2) in x.[0], x.[1])
+              let fields = argv.[3 ..] |> Array.map (fun n -> let x = n.Split(':', 2) in {name = x.[0]; typ = ParameterType.TryParse x.[1]; nullable = false})
               generateMdl name names fields
             // | "gen.graphql" -> generateGraphQL name names fields
             | "migration" -> runMigration ()
