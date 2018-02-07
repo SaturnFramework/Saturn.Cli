@@ -92,7 +92,7 @@ type %s = {
 module Validation =
   let validate v =
     let validators = [
-      fun u -> if isNull u.%s then Some ("%s", "%s shound't be empty") else None
+      fun u -> if isNull u.%s then Some ("%s", "%s shouldn't be empty") else None
     ]
 
     validators
