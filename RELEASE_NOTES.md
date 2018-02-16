@@ -1,5 +1,6 @@
-### 0.4.0 - 16.02.2018
+### 0.4.1 - 16.02.2018
 * Remove unnecessery opens
+* Different namespace for `task` CE
 
 ### 0.3.0 - 02.02.2018
 * Add initial support for different data types
