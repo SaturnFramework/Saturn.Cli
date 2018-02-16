@@ -1,9 +1,9 @@
 module Program
 open System.IO
 open System
-open System.Diagnostics  
+open System.Diagnostics
 
-type ParameterType = 
+type ParameterType =
   | String
   | Int
   | Float
@@ -12,17 +12,17 @@ type ParameterType =
   | Guid
   | DateTime
   | Bool
-with 
-  static member TryParse x = 
+with
+  static member TryParse x =
     match x with
     | "string" -> String
     | "int" -> Int
     | "float" -> Float
-    | "double" -> Double 
+    | "double" -> Double
     | "decimal" -> Decimal
     | "guid" -> Guid
     | "datetime" -> DateTime
-    | "bool" -> Bool 
+    | "bool" -> Bool
     | _ -> failwithf "Unsupported type - %s" x
 
 type Parameter = {
@@ -30,7 +30,7 @@ type Parameter = {
   typ : ParameterType
   nullable : bool
 }
-with 
+with
   member x.FSharpType =
     match x.typ with
     | String -> "string"
@@ -41,8 +41,8 @@ with
     | Guid -> "System.Guid"
     | DateTime -> "System.DateTime"
     | Bool -> "bool"
-  
-  member x.DbType = 
+
+  member x.DbType =
     match x.typ with
     | String -> "TEXT"
     | Int -> "INT"
@@ -104,7 +104,7 @@ module Validation =
 """     names name fields id id (upper id)
 
 let generateRepository name names (fields : Parameter []) =
-  let id = fields.[0].name 
+  let id = fields.[0].name
   let getAllQuery = sprintf "SELECT %s FROM %s" (fields |> Array.map (fun f -> f.name) |> String.concat ", ") names
   let getByIdQuery = sprintf "SELECT %s FROM %s WHERE %s=@%s" (fields |> Array.map (fun f -> f.name) |> String.concat ", ") names id id
   let updateQuery = sprintf "UPDATE %s SET %s WHERE %s=@%s" names (fields |> Array.map (fun f -> f.name + " = @" + f.name) |> String.concat ", ") id id
@@ -271,8 +271,6 @@ open Microsoft.AspNetCore.Http
 open Giraffe.Tasks
 open Config
 open Saturn
-open Saturn.Controller
-open Saturn.ControllerHelpers
 
 module Controller =
 
@@ -379,8 +377,6 @@ open Microsoft.AspNetCore.Http
 open Giraffe.Tasks
 open Config
 open Saturn
-open Saturn.Controller
-open Saturn.ControllerHelpers
 
 module Controller =
 
@@ -625,13 +621,13 @@ let main argv =
             | "gen" | "gen.html" ->
               let name = argv.[1]
               let names = argv.[2]
-              let fields = argv.[3 ..] |> Array.map (fun n -> let x = n.Split(':', 2) in {name = x.[0]; typ = ParameterType.TryParse x.[1]; nullable = false}) 
+              let fields = argv.[3 ..] |> Array.map (fun n -> let x = n.Split(':', 2) in {name = x.[0]; typ = ParameterType.TryParse x.[1]; nullable = false})
               generateHtml name names fields
             | "gen.json" ->
               let name = argv.[1]
               let names = argv.[2]
               let fields = argv.[3 ..] |> Array.map (fun n -> let x = n.Split(':', 2) in {name = x.[0]; typ = ParameterType.TryParse x.[1]; nullable = false})
-              generateJson name names fields 
+              generateJson name names fields
             | "gen.model" ->
               let name = argv.[1]
               let names = argv.[2]
