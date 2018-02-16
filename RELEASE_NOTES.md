@@ -1,3 +1,6 @@
+### 0.4.0 - 16.02.2018
+* Remove unnecessery opens
+
 ### 0.3.0 - 02.02.2018
 * Add initial support for different data types
 
