@@ -268,7 +268,7 @@ let generateViewsController (name: string) (names : string) (_ : Parameter []) =
   sprintf """namespace %s
 
 open Microsoft.AspNetCore.Http
-open Giraffe.Tasks
+open FSharp.Control.Tasks.ContextInsensitive
 open Config
 open Saturn
 
@@ -374,7 +374,7 @@ let generateJsonController (name: string) (names : string) (_ : Parameter []) =
   sprintf """namespace %s
 
 open Microsoft.AspNetCore.Http
-open Giraffe.Tasks
+open FSharp.Control.Tasks.ContextInsensitive
 open Config
 open Saturn
 
