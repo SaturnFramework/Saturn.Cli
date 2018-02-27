@@ -1,3 +1,6 @@
+### 0.4.2 - 16.02.2018
+* Change generateViewController to use renderXml method to render XmlNode (by @mtnrbq)
+
 ### 0.4.1 - 16.02.2018
 * Remove unnecessery opens
 * Different namespace for `task` CE
