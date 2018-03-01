@@ -119,24 +119,34 @@ open System.Threading.Tasks
 
 module Database =
   let getAll connectionString : Task<Result<%s seq, exn>> =
-    use connection = new SqliteConnection(connectionString)
-    query connection "%s" None
+    task {
+      use connection = new SqliteConnection(connectionString)
+      return! query connection "%s" None
+    }
 
   let getById connectionString id : Task<Result<%s option, exn>> =
-    use connection = new SqliteConnection(connectionString)
-    querySingle connection "%s" (Some <| dict ["id" => id])
+    task {
+      use connection = new SqliteConnection(connectionString)
+      return! querySingle connection "%s" (Some <| dict ["id" => id])
+    }
 
   let update connectionString v : Task<Result<int,exn>> =
-    use connection = new SqliteConnection(connectionString)
-    execute connection "%s" v
+    task {
+      use connection = new SqliteConnection(connectionString)
+      return! execute connection "%s" v
+    }
 
   let insert connectionString v : Task<Result<int,exn>> =
-    use connection = new SqliteConnection(connectionString)
-    execute connection "%s" v
+    task {
+      use connection = new SqliteConnection(connectionString)
+      return! execute connection "%s" v
+    }
 
   let delete connectionString id : Task<Result<int,exn>> =
-    use connection = new SqliteConnection(connectionString)
-    execute connection "%s" (dict ["id" => id])
+    task {
+      use connection = new SqliteConnection(connectionString)
+      return! execute connection "%s" (dict ["id" => id])
+    }
 
 """   names name getAllQuery name getByIdQuery updateQuery insertQuery deleteQuery
 
