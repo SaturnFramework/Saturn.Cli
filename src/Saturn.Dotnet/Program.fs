@@ -596,10 +596,16 @@ let generateMdl (name : string) (names : string) (fields : Parameter []) =
 let generateGraphQL (name : string) (names : string) (fields : Parameter []) =
     ()
 
-let runMigration () =
+let runMigration (extraArgv: string []) =
+  let baseArgumetns = "run --project ../Migrations/Migrations.fsproj"
+  let arguments =
+      match extraArgv with
+      | [||] -> baseArgumetns
+      | _ ->
+          sprintf "%s -- %s" baseArgumetns (Array.fold (+) "" extraArgv)
   let startInfo = ProcessStartInfo()
   startInfo.CreateNoWindow <- true
-  startInfo.Arguments <- "run --project ../Migrations/Migrations.fsproj"
+  startInfo.Arguments <- arguments
   startInfo.FileName <- "dotnet"
   startInfo.RedirectStandardOutput <- true
   startInfo.RedirectStandardError <- true
@@ -644,7 +650,7 @@ let main argv =
               let fields = argv.[3 ..] |> Array.map (fun n -> let x = n.Split(':', 2) in {name = x.[0]; typ = ParameterType.TryParse x.[1]; nullable = false})
               generateMdl name names fields
             // | "gen.graphql" -> generateGraphQL name names fields
-            | "migration" -> runMigration ()
+            | "migration" -> runMigration argv.[1 ..]
             | _ ->
                 printfn "Wrong format of input parameters - they should be passed in following format: Command Name Names [field_name:field_type]"
                 printfn "---"
