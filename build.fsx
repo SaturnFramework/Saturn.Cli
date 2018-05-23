@@ -152,10 +152,11 @@ Target "Release" DoNothing
   ==> "AssemblyInfo"
   ==> "Restore"
   ==> "Build"
+  ==> "Pack"
   ==> "Default"
 
+
 "Default"
-  ==> "Pack"
   ==> "ReleaseGitHub"
   ==> "Push"
   ==> "Release"

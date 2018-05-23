@@ -2,4 +2,5 @@ source https://www.nuget.org/api/v2
 
 nuget FAKE
 nuget FSharp.Core
+nuget ConsoleTables
 github fsharp/FAKE modules/Octokit/Octokit.fsx
