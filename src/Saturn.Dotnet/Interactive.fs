@@ -3,6 +3,7 @@ module Interactive
 open System
 open System.IO
 open ConsoleTables
+open Argu
 
 let toRegex (path : string) =
     let r =
@@ -16,8 +17,18 @@ let toRegex (path : string) =
             .Replace("%O", "[^/]+")
     "^" + r + "$"
 
+type Arg =
+    | Version of string
+    | Header of string * string
+    | Body of string
+with
+    interface IArgParserTemplate with
+        member __.Usage = ""
+
 
 let start path =
+    let parser = ArgumentParser.Create<Arg>()
+
     let mapPath =
         Directory.GetFiles(path, "site.map", SearchOption.AllDirectories)
         |> Seq.tryHead
@@ -74,7 +85,31 @@ let start path =
                 let input' = input.Split ' '
                 let path = input'.[0].Trim('/')
                 let word = if input'.Length > 1 then input'.[1] else "GET"
-                let version = if input'.Length > 2 then Some input'.[2] else None
+                let args =
+                    if input'.Length > 2 then input'.[2..] |> String.concat " " else ""
+
+                let parseArgs (cmdl : string) =
+                    let chars = cmdl.ToCharArray ()
+                    let mutable inQuote = false
+                    chars
+                    |> Array.mapi (fun i c ->
+                        if c = '"' then inQuote <- not inQuote
+                        if not inQuote && chars.[i] = ' ' then
+                            '\n'
+                        else
+                            c)
+                    |> String
+                    |> fun n -> n.Split '\n'
+
+                let args = parseArgs args
+
+                let args =
+                    try
+                        parser.Parse(args, ignoreMissing = true, ignoreUnrecognized = true).GetAllResults()
+                    with
+                    | _ ->  []
+                let version = args |> List.tryPick (function Version (v) -> Some v | _ -> None)
+
                 let pathOpt =
                     cnt |> Array.tryFind(fun (w,p,v) ->
                         w = word &&
@@ -82,5 +117,6 @@ let start path =
                         v = version)
 
                 printfn "%A" pathOpt
+                printfn "%A" args
 
                 ()
