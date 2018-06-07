@@ -119,33 +119,40 @@ let start path =
                 match pathOpt with
                 | None -> printfn "Couldn't find route"
                 | Some (word, path, version) ->
-                    let method =
-                        match word with
-                        | "GET" -> Get
-                        | "POST" -> Post
-                        | "DELETE" -> Delete
-                        | "PUT" -> Put
-                        | "PATCH" -> Patch
-                    let res =
-                        Request.createUrl method path
-                        |> fun n ->
-                            match version with
-                            | None -> n
-                            | Some v ->
-                                n |> Request.setHeader (Custom ("x-controller-version", v))
-                        |> fun n ->
-                            args
-                            |> Seq.choose (function Header (k,v) -> Some (k,v) | _ -> None)
-                            |> Seq.fold (fun acc e -> acc |> Request.setHeader(Custom e)) n
-                        |> fun n ->
-                            match args |> Seq.tryPick (function Body b -> Some b | _ -> None) with
-                            | None -> n
-                            | Some b ->
-                                n |> Request.bodyString b
-                        |> getResponse
-                        |> Hopac.run
+                    let uri = url + path
+                    printfn "Calling %s" uri
+                    try
+                        let method =
+                            match word with
+                            | "GET" -> Get
+                            | "POST" -> Post
+                            | "DELETE" -> Delete
+                            | "PUT" -> Put
+                            | "PATCH" -> Patch
+                        let res =
+                            Request.createUrl method uri
+                            |> fun n ->
+                                match version with
+                                | None -> n
+                                | Some v ->
+                                    n |> Request.setHeader (Custom ("x-controller-version", v))
+                            |> fun n ->
+                                args
+                                |> Seq.choose (function Header (k,v) -> Some (k,v) | _ -> None)
+                                |> Seq.fold (fun acc e -> acc |> Request.setHeader(Custom e)) n
+                            |> fun n ->
+                                match args |> Seq.tryPick (function Body b -> Some b | _ -> None) with
+                                | None -> n
+                                | Some b ->
+                                    n |> Request.bodyString b
+                            |> getResponse
+                            |> Hopac.run
 
-                    printfn "%A" res
-                    printfn "%A" args
-
+                        printfn "URL: %s" (res.responseUri.ToString())
+                        printfn "STATUS CODE: %d" res.statusCode
+                        printfn "HEADERS: \n%A" (res.headers |> Seq.map (fun n -> n.Key,n.Value))
+                        printfn "CONTENT: \n%s" (Response.readBodyAsString res |> Hopac.run)
+                    with
+                    | _ ->
+                        printfn "Calling endpint failed, please make sure server is running and url parameter is set to right address"
                 ()
