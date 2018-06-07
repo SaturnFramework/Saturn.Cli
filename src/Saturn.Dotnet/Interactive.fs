@@ -4,6 +4,8 @@ open System
 open System.IO
 open ConsoleTables
 open Argu
+open HttpFs.Client
+open Hopac
 
 let toRegex (path : string) =
     let r =
@@ -41,7 +43,6 @@ let start path =
         let mutable url = "http://localhost:8085"
         let mutable work = true
         let mutable cnt = [||]
-
 
         while work do
             printf "> "
@@ -115,8 +116,36 @@ let start path =
                         w = word &&
                         System.Text.RegularExpressions.Regex.IsMatch(path, (toRegex p)) &&
                         v = version)
+                match pathOpt with
+                | None -> printfn "Couldn't find route"
+                | Some (word, path, version) ->
+                    let method =
+                        match word with
+                        | "GET" -> Get
+                        | "POST" -> Post
+                        | "DELETE" -> Delete
+                        | "PUT" -> Put
+                        | "PATCH" -> Patch
+                    let res =
+                        Request.createUrl method path
+                        |> fun n ->
+                            match version with
+                            | None -> n
+                            | Some v ->
+                                n |> Request.setHeader (Custom ("x-controller-version", v))
+                        |> fun n ->
+                            args
+                            |> Seq.choose (function Header (k,v) -> Some (k,v) | _ -> None)
+                            |> Seq.fold (fun acc e -> acc |> Request.setHeader(Custom e)) n
+                        |> fun n ->
+                            match args |> Seq.tryPick (function Body b -> Some b | _ -> None) with
+                            | None -> n
+                            | Some b ->
+                                n |> Request.bodyString b
+                        |> getResponse
+                        |> Hopac.run
 
-                printfn "%A" pathOpt
-                printfn "%A" args
+                    printfn "%A" res
+                    printfn "%A" args
 
                 ()

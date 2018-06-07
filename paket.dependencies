@@ -4,5 +4,6 @@ nuget FAKE
 nuget FSharp.Core
 nuget ConsoleTables
 nuget Argu
+nuget Http.fs
 
 github fsharp/FAKE modules/Octokit/Octokit.fsx
