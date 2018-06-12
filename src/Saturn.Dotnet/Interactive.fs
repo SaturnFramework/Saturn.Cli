@@ -118,9 +118,9 @@ let start path =
                         v = version)
                 match pathOpt with
                 | None -> printfn "Couldn't find route"
-                | Some (word, path, version) ->
-                    let uri = url + path
-                    printfn "Calling %s" uri
+                | Some (word, _, version) ->
+                    let uri = url + "/" + path
+                    printfn "Calling %s with version %A" uri version
                     try
                         let method =
                             match word with
@@ -150,7 +150,7 @@ let start path =
 
                         printfn "URL: %s" (res.responseUri.ToString())
                         printfn "STATUS CODE: %d" res.statusCode
-                        printfn "HEADERS: \n%A" (res.headers |> Seq.map (fun n -> n.Key,n.Value))
+                        printfn "HEADERS: \n%A" (res.headers |> Seq.map (fun n -> n.Key,n.Value) |> Seq.toList)
                         printfn "CONTENT: \n%s" (Response.readBodyAsString res |> Hopac.run)
                     with
                     | _ ->
