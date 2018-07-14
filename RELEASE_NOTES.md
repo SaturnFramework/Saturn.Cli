@@ -1,3 +1,7 @@
+### 0.7.0 - 14.07.2018
+* EXPERIMENTAL: Add interactive mode.
+* Update to Saturn 0.7
+
 ### 0.4.2 - 16.02.2018
 * Change generateViewController to use renderXml method to render XmlNode (by @mtnrbq)
 
