@@ -623,6 +623,7 @@ let printHelp () =
   * gen.json - generates the model, data access layer, and controller returning data in JSON format
   * gen.model - generates model, and data access layer without controller nor views
   * migration - runs migration of database to latest version
+  * interactive - starts interactive mode that let's you interactivly explore running application
 
 """
 
@@ -651,6 +652,7 @@ let main argv =
               generateMdl name names fields
             // | "gen.graphql" -> generateGraphQL name names fields
             | "migration" -> runMigration argv.[1 ..]
+            | "interactive" -> Interactive.start (Directory.GetCurrentDirectory())
             | _ ->
                 printfn "Wrong format of input parameters - they should be passed in following format: Command Name Names [field_name:field_type]"
                 printfn "---"
