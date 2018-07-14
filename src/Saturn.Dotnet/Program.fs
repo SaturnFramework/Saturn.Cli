@@ -290,36 +290,38 @@ module Controller =
       let! result = Database.getAll cnf.connectionString
       match result with
       | Ok result ->
-        return! Controller.renderXml ctx (Views.index ctx (List.ofSeq result))
+        return Views.index ctx (List.ofSeq result)
       | Error ex ->
         return raise ex
     }
 
-  let showAction (ctx: HttpContext, id : string) =
+  let showAction (ctx: HttpContext) (id : string) =
     task {
       let cnf = Controller.getConfig ctx
       let! result = Database.getById cnf.connectionString id
       match result with
       | Ok (Some result) ->
-        return! Controller.renderXml ctx (Views.show ctx result)
+        return Views.show ctx result
       | Ok None ->
-        return! Controller.renderXml ctx NotFound.layout
+        return NotFound.layout
       | Error ex ->
         return raise ex
     }
 
   let addAction (ctx: HttpContext) =
-    Controller.renderXml ctx (Views.add ctx None Map.empty)
+    task {
+      return Views.add ctx None Map.empty
+    }
 
-  let editAction (ctx: HttpContext, id : string) =
+  let editAction (ctx: HttpContext) (id : string) =
     task {
       let cnf = Controller.getConfig ctx
       let! result = Database.getById cnf.connectionString id
       match result with
       | Ok (Some result) ->
-        return! Controller.renderXml ctx (Views.edit ctx result Map.empty)
+        return Views.edit ctx result Map.empty
       | Ok None ->
-        return! Controller.renderXml ctx NotFound.layout
+        return NotFound.layout
       | Error ex ->
         return raise ex
     }
@@ -338,10 +340,10 @@ module Controller =
         | Error ex ->
           return raise ex
       else
-        return! Controller.renderXml ctx (Views.add ctx (Some input) validateResult)
+        return Views.add ctx (Some input) validateResult
     }
 
-  let updateAction (ctx: HttpContext, id : string) =
+  let updateAction (ctx: HttpContext) (id : string) =
     task {
       let! input = Controller.getModel<%s> ctx
       let validateResult = Validation.validate input
@@ -354,10 +356,10 @@ module Controller =
         | Error ex ->
           return raise ex
       else
-        return! Controller.renderXml ctx (Views.edit ctx input validateResult)
+        return Views.edit ctx input validateResult
     }
 
-  let deleteAction (ctx: HttpContext, id : string) =
+  let deleteAction (ctx: HttpContext) (id : string) =
     task {
       let cnf = Controller.getConfig ctx
       let! result = Database.delete cnf.connectionString id
@@ -396,18 +398,18 @@ module Controller =
       let! result = Database.getAll cnf.connectionString
       match result with
       | Ok result ->
-        return! Controller.json ctx result
+        return result
       | Error ex ->
         return raise ex
     }
 
-  let showAction (ctx: HttpContext, id : string) =
+  let showAction (ctx: HttpContext) (id : string) =
     task {
       let cnf = Controller.getConfig ctx
       let! result = Database.getById cnf.connectionString id
       match result with
       | Ok (Some result) ->
-        return! Controller.json ctx result
+        return result
       | Ok None ->
         return! Response.notFound ctx "Value not fund"
       | Error ex ->
@@ -431,7 +433,7 @@ module Controller =
         return! Response.badRequest ctx "Validation failed"
     }
 
-  let updateAction (ctx: HttpContext, id : string) =
+  let updateAction (ctx: HttpContext) (id : string) =
     task {
       let! input = Controller.getModel<%s> ctx
       let validateResult = Validation.validate input
@@ -447,7 +449,7 @@ module Controller =
         return! Response.badRequest ctx "Validation failed"
     }
 
-  let deleteAction (ctx: HttpContext, id : string) =
+  let deleteAction (ctx: HttpContext) (id : string) =
     task {
       let cnf = Controller.getConfig ctx
       let! result = Database.delete cnf.connectionString id
@@ -623,7 +625,7 @@ let printHelp () =
   * gen.json - generates the model, data access layer, and controller returning data in JSON format
   * gen.model - generates model, and data access layer without controller nor views
   * migration - runs migration of database to latest version
-  * interactive - starts interactive mode that let's you interactivly explore running application
+  * interactive - starts interactive mode that let's you interactivly explore running application. EXPERIMENTAL.
 
 """
 
