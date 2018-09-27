@@ -341,7 +341,7 @@ module Controller =
         | Error ex ->
           return raise ex
       else
-        return! Controller.renderXml ctx (Views.add ctx (Some input) validateResult)
+        return! Controller.renderHtml ctx (Views.add ctx (Some input) validateResult)
     }
 
   let updateAction (ctx: HttpContext) (id : string) =
@@ -357,7 +357,7 @@ module Controller =
         | Error ex ->
           return raise ex
       else
-        return! Controller.renderXml ctx (Views.edit ctx input validateResult)
+        return! Controller.renderHtml ctx (Views.edit ctx input validateResult)
     }
 
   let deleteAction (ctx: HttpContext) (id : string) =
