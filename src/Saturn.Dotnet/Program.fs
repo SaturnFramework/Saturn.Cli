@@ -409,7 +409,7 @@ module Controller =
       let! result = Database.getById cnf.connectionString id
       match result with
       | Ok (Some result) ->
-        return result
+        return! Response.ok ctx result
       | Ok None ->
         return! Response.notFound ctx "Value not fund"
       | Error ex ->
