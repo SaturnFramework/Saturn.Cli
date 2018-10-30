@@ -155,17 +155,17 @@ let generateView name names (fields : Parameter []) =
 
     let tableHeader =
         fields
-        |> Seq.map (fun f -> sprintf "th [] [rawText \"%s\"]" (upper f.name) )
+        |> Seq.map (fun f -> sprintf "th [] [encodedText \"%s\"]" (upper f.name) )
         |> String.concat "\n              "
 
     let tableContent =
         fields
-        |> Seq.map (fun f -> sprintf "td [] [rawText (string o.%s)]" f.name)
+        |> Seq.map (fun f -> sprintf "td [] [encodedText (string o.%s)]" f.name)
         |> String.concat "\n                "
 
     let viewItemContent =
         fields
-        |> Seq.map (fun f -> sprintf "li [] [ strong [] [rawText \"%s: \"]; rawText (string o.%s) ]" (upper f.name) f.name )
+        |> Seq.map (fun f -> sprintf "li [] [ strong [] [encodedText \"%s: \"]; encodedText (string o.%s) ]" (upper f.name) f.name )
         |> String.concat "\n          "
 
     let formContetn =
@@ -183,7 +183,7 @@ module Views =
   let index (ctx : HttpContext) (objs : %s list) =
     let cnt = [
       div [_class "container "] [
-        h2 [ _class "title"] [rawText "Listing %s"]
+        h2 [ _class "title"] [encodedText "Listing %s"]
 
         table [_class "table is-hoverable is-fullwidth"] [
           thead [] [
@@ -197,15 +197,15 @@ module Views =
               yield tr [] [
                 %s
                 td [] [
-                  a [_class "button is-text"; _href (Links.withId ctx o.id )] [rawText "Show"]
-                  a [_class "button is-text"; _href (Links.edit ctx o.id )] [rawText "Edit"]
-                  a [_class "button is-text is-delete"; attr "data-href" (Links.withId ctx o.id ) ] [rawText "Delete"]
+                  a [_class "button is-text"; _href (Links.withId ctx o.id )] [encodedText "Show"]
+                  a [_class "button is-text"; _href (Links.edit ctx o.id )] [encodedText "Edit"]
+                  a [_class "button is-text is-delete"; attr "data-href" (Links.withId ctx o.id ) ] [encodedText "Delete"]
                 ]
               ]
           ]
         ]
 
-        a [_class "button is-text"; _href (Links.add ctx )] [rawText "New %s"]
+        a [_class "button is-text"; _href (Links.add ctx )] [encodedText "New %s"]
       ]
     ]
     App.layout ([section [_class "section"] cnt])
@@ -214,13 +214,13 @@ module Views =
   let show (ctx : HttpContext) (o : %s) =
     let cnt = [
       div [_class "container "] [
-        h2 [ _class "title"] [rawText "Show %s"]
+        h2 [ _class "title"] [encodedText "Show %s"]
 
         ul [] [
           %s
         ]
-        a [_class "button is-text"; _href (Links.edit ctx o.id)] [rawText "Edit"]
-        a [_class "button is-text"; _href (Links.index ctx )] [rawText "Back"]
+        a [_class "button is-text"; _href (Links.edit ctx o.id)] [encodedText "Edit"]
+        a [_class "button is-text"; _href (Links.index ctx )] [encodedText "Back"]
       ]
     ]
     App.layout ([section [_class "section"] cnt])
@@ -229,12 +229,12 @@ module Views =
     let validationMessage =
       div [_class "notification is-danger"] [
         a [_class "delete"; attr "aria-label" "delete"] []
-        rawText "Oops, something went wrong! Please check the errors below."
+        encodedText "Oops, something went wrong! Please check the errors below."
       ]
 
     let field selector lbl key =
       div [_class "field"] [
-        yield label [_class "label"] [rawText (string lbl)]
+        yield label [_class "label"] [encodedText (string lbl)]
         yield div [_class "control has-icons-right"] [
           yield input [_class (if validationResult.ContainsKey key then "input is-danger" else "input"); _value (defaultArg (o |> Option.map selector) ""); _name key ; _type "text" ]
           if validationResult.ContainsKey key then
@@ -243,7 +243,7 @@ module Views =
             ]
         ]
         if validationResult.ContainsKey key then
-          yield p [_class "help is-danger"] [rawText validationResult.[key]]
+          yield p [_class "help is-danger"] [encodedText validationResult.[key]]
       ]
 
     let buttons =
@@ -252,7 +252,7 @@ module Views =
           input [_type "submit"; _class "button is-link"; _value "Submit"]
         ]
         div [_class "control"] [
-          a [_class "button is-text"; _href (Links.index ctx)] [rawText "Cancel"]
+          a [_class "button is-text"; _href (Links.index ctx)] [encodedText "Cancel"]
         ]
       ]
 
