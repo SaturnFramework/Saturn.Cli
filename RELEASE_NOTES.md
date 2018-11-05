@@ -1,3 +1,6 @@
+### 0.7.2 - 05.11.2018
+* Small fixes in generated controller code
+
 ### 0.7.1 - 14.07.2018
 * EXPERIMENTAL: Add interactive mode.
 * Update to Saturn 0.7
@@ -6,7 +9,7 @@
 * Change generateViewController to use renderXml method to render XmlNode (by @mtnrbq)
 
 ### 0.4.1 - 16.02.2018
-* Remove unnecessery opens
+* Remove unnecessary opens
 * Different namespace for `task` CE
 
 ### 0.3.0 - 02.02.2018
@@ -16,4 +19,4 @@
 
 * Initial version
 * Implemented generation for view controllers and json controllers
-* Implemented comand line interface for running migrations
+* Implemented command line interface for running migrations
