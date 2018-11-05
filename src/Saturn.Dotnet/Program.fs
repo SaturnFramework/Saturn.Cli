@@ -13,8 +13,8 @@ type ParameterType =
   | DateTime
   | Bool
 with
-  static member TryParse x =
-    match x with
+  static member TryParse (x: string) =
+    match x.ToLower() with
     | "string" -> String
     | "int" -> Int
     | "float" -> Float
@@ -291,7 +291,7 @@ module Controller =
       let! result = Database.getAll cnf.connectionString
       match result with
       | Ok result ->
-        return Views.index ctx (List.ofSeq result)
+        return! Controller.renderHtml ctx (Views.index ctx (List.ofSeq result))
       | Error ex ->
         return raise ex
     }
@@ -302,16 +302,16 @@ module Controller =
       let! result = Database.getById cnf.connectionString id
       match result with
       | Ok (Some result) ->
-        return Views.show ctx result
+        return! Controller.renderHtml ctx (Views.show ctx result)
       | Ok None ->
-        return NotFound.layout
+        return! Controller.renderHtml ctx (NotFound.layout)
       | Error ex ->
         return raise ex
     }
 
   let addAction (ctx: HttpContext) =
     task {
-      return Views.add ctx None Map.empty
+      return! Controller.renderHtml ctx (Views.add ctx None Map.empty)
     }
 
   let editAction (ctx: HttpContext) (id : string) =
@@ -320,9 +320,9 @@ module Controller =
       let! result = Database.getById cnf.connectionString id
       match result with
       | Ok (Some result) ->
-        return Views.edit ctx result Map.empty
+        return! Controller.renderHtml ctx (Views.edit ctx result Map.empty)
       | Ok None ->
-        return NotFound.layout
+        return! Controller.renderHtml ctx (NotFound.layout)
       | Error ex ->
         return raise ex
     }
@@ -341,7 +341,7 @@ module Controller =
         | Error ex ->
           return raise ex
       else
-        return! Controller.renderXml ctx (Views.add ctx (Some input) validateResult)
+        return! Controller.renderHtml ctx (Views.add ctx (Some input) validateResult)
     }
 
   let updateAction (ctx: HttpContext) (id : string) =
@@ -357,7 +357,7 @@ module Controller =
         | Error ex ->
           return raise ex
       else
-        return! Controller.renderXml ctx (Views.edit ctx input validateResult)
+        return! Controller.renderHtml ctx (Views.edit ctx input validateResult)
     }
 
   let deleteAction (ctx: HttpContext) (id : string) =

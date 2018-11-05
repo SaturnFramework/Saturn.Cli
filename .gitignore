@@ -391,3 +391,4 @@ packages
 
 release.cmd
 release.sh
+.ionide
