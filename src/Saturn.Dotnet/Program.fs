@@ -412,7 +412,7 @@ module Controller =
       | Ok (Some result) ->
         return! Response.ok ctx result
       | Ok None ->
-        return! Response.notFound ctx "Value not fund"
+        return! Response.notFound ctx "Value not found"
       | Error ex ->
         return raise ex
     }
