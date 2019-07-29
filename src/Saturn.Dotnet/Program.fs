@@ -67,7 +67,6 @@ let (</>) a b = Path.Combine(a,b)
 let upper (s: string) =
     s |> Seq.mapi (fun i c -> match i with | 0 -> (Char.ToUpper(c)) | _ -> c)  |> String.Concat
 
-
 let generateFile (path, ctn) =
     let path = Path.GetFullPath path
     printfn "Generated %s ..." path
@@ -625,8 +624,8 @@ let printHelp () =
   * gen, gen.html - generates the model, data access layer, controller, and server side views
   * gen.json - generates the model, data access layer, and controller returning data in JSON format
   * gen.model - generates model, and data access layer without controller nor views
-  * migration - runs migration of database to latest version
-  * interactive - starts interactive mode that let's you interactivly explore running application. EXPERIMENTAL.
+  * migration - runs all migrations updating the database to the latest version
+  * interactive - [experimental] starts interactive mode to interactivly explore running application.
 
 """
 
@@ -656,6 +655,7 @@ let main argv =
             // | "gen.graphql" -> generateGraphQL name names fields
             | "migration" -> runMigration argv.[1 ..]
             | "interactive" -> Interactive.start (Directory.GetCurrentDirectory())
+            | "help" | "--help" | "-?" -> printHelp ()
             | _ ->
                 printfn "Wrong format of input parameters - they should be passed in following format: Command Name Names [field_name:field_type]"
                 printfn "---"
