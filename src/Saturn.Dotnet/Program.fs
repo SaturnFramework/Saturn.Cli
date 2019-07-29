@@ -626,7 +626,7 @@ let printHelp () =
   * gen.json - generates the model, data access layer, and controller returning data in JSON format
   * gen.model - generates model, and data access layer without controller nor views
   * migration - runs migration of database to latest version
-  * interactive - starts interactive mode that let's you interactivly explore running application. EXPERIMENTAL.
+  * interactive - starts interactive mode that let's you interactively explore running application. EXPERIMENTAL.
 
 """
 
