@@ -3,7 +3,7 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp2.0</TargetFramework>
-        <Description>A dotnet CLI tool for Saturn projects</Description>
+    <Description>A dotnet CLI tool for Saturn projects</Description>
     <Authors>Krzysztof Cieslak</Authors>
     <Copyright>Copyright 2018 Lambda Factory</Copyright>
     <PackageLicenseUrl>https://github.com/Krzysztof-Cieslak/Saturn.Dotnet/blob/master/LICENSE.md</PackageLicenseUrl>

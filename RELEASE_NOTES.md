@@ -1,3 +1,9 @@
+### 0.9.0 - 30.07.2019
+* Add handling of help commands and clean up help messages
+* Fix generated code in views
+* Corrected return type of showAction in generated controller
+* Update to Saturn 0.9
+
 ### 0.7.2 - 05.11.2018
 * Small fixes in generated controller code
 
