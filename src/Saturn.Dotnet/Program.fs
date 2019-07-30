@@ -621,13 +621,13 @@ let runMigration (extraArgv: string []) =
 let printHelp () =
   Console.ForegroundColor <- ConsoleColor.Cyan
   printfn "Welcome to Saturn CLI. Avaliable commands:"
-  Console.ForegroundColor <- ConsoleColor.White
+  Console.ResetColor ()
   [
-    "* gen, gen.html", "generates the model, data access layer, controller, and server side views"
-    "* gen.json", "generates the model, data access layer, and controller returning data in JSON format"
-    "* gen.model", "generates model, and data access layer without controller nor views"
-    "* migration", "runs all migrations updating the database to the latest version"
-    "* interactive", "[experimental] starts interactive mode to interactivly explore running application"
+    "* gen, gen.html", "generates the model, data access layer, controller and server side views"
+    "* gen.json", "generates the model, data access layer and controller returning data in JSON format"
+    "* gen.model", "generates the model and data access layer only"
+    "* migration", "runs all migrations, updating the database to the latest version"
+    "* interactive", "[experimental] starts interactive mode to interactively explore the running application"
   ]
   |> List.iter (fun (command, description) -> printfn "%-16s %s" command description)
 
