@@ -611,27 +611,28 @@ let runMigration (extraArgv: string []) =
   startInfo.FileName <- "dotnet"
   startInfo.RedirectStandardOutput <- true
   startInfo.RedirectStandardError <- true
-  startInfo.RedirectStandardInput <-true
+  startInfo.RedirectStandardInput <- true
   startInfo.WorkingDirectory <- Directory.GetCurrentDirectory()
-  let processs = Process.Start(startInfo)
+  let processs = Process.Start startInfo
   let output = processs.StandardOutput.ReadToEnd()
   processs.WaitForExit()
   printfn "%s" output
 
 let printHelp () =
-    printfn """Avaliable commands:
-
-  * gen, gen.html - generates the model, data access layer, controller, and server side views
-  * gen.json - generates the model, data access layer, and controller returning data in JSON format
-  * gen.model - generates model, and data access layer without controller nor views
-  * migration - runs all migrations updating the database to the latest version
-  * interactive - [experimental] starts interactive mode to interactivly explore running application.
-
-"""
+  Console.ForegroundColor <- ConsoleColor.Cyan
+  printfn "Welcome to Saturn CLI. Avaliable commands:"
+  Console.ForegroundColor <- ConsoleColor.White
+  [
+    "* gen, gen.html", "generates the model, data access layer, controller, and server side views"
+    "* gen.json", "generates the model, data access layer, and controller returning data in JSON format"
+    "* gen.model", "generates model, and data access layer without controller nor views"
+    "* migration", "runs all migrations updating the database to the latest version"
+    "* interactive", "[experimental] starts interactive mode to interactivly explore running application"
+  ]
+  |> List.iter (fun (command, description) -> printfn "%-16s %s" command description)
 
 [<EntryPoint>]
 let main argv =
-
     match Array.tryHead argv |> Option.map (fun n -> n.ToLower()) with
     | Some action ->
         try
@@ -666,8 +667,6 @@ let main argv =
             printfn "---"
             printHelp ()
     | None ->
-        printfn "Missing input parameters - they should be passed in following format: Command Name Names [field_name:field_type]"
-        printfn "---"
         printHelp ()
 
     0 // return an integer exit code
