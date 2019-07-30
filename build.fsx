@@ -30,7 +30,6 @@ let gitHome = "https://github.com/" + gitOwner
 // --------------------------------------------------------------------------------------
 
 let buildDir  = FullName "./build/"
-let dotnetcliVersion = "2.1.403"
 
 Environment.CurrentDirectory <- __SOURCE_DIRECTORY__
 let release = parseReleaseNotes (IO.File.ReadAllLines "RELEASE_NOTES.md")
@@ -68,10 +67,6 @@ Target "AssemblyInfo" (fun _ ->
         | Vbproj -> CreateVisualBasicAssemblyInfo ((folderName </> "My Project") </> "AssemblyInfo.vb") attributes
         | Shproj -> ()
         )
-)
-
-Target "InstallDotNetCLI" (fun _ ->
-    DotNetCli.InstallDotNetSDK dotnetcliVersion |> ignore
 )
 
 Target "Restore" (fun _ ->
@@ -148,7 +143,6 @@ Target "Default" DoNothing
 Target "Release" DoNothing
 
 "Clean"
-  ==> "InstallDotNetCLI"
   ==> "AssemblyInfo"
   ==> "Restore"
   ==> "Build"
