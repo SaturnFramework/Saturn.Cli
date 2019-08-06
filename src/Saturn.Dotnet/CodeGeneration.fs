@@ -5,7 +5,6 @@ open System
 open Models
 open Strings
 open Paths
-open Files
 
 let generateModel name names (fields : Parameter []) =
     let id = fields.[0].name
@@ -407,7 +406,8 @@ let generateMigration (name: string) (names : string) (fields : Parameter []) =
     let id = sprintf "%i%02i%02i%02i%02i" DateTime.Now.Year DateTime.Now.Month DateTime.Now.Day DateTime.Now.Hour DateTime.Now.Minute
     let fn = sprintf "%s.%s.fs" id name
     let fields = fields |> Array.map (fun f -> sprintf "%s %s NOT NULL" f.name f.DbType) |> String.concat ",\n      "
-    let content = sprintf """namespace Migrations
+    let content =
+        sprintf """namespace Migrations
 open SimpleMigrations
 
 [<Migration(%sL, "Create %s")>]
@@ -421,14 +421,15 @@ type Create%s() =
 
   override __.Down() =
     base.Execute(@"DROP TABLE %s")
-"""                 id names names names fields names
+"""      id names names names fields names
 
-    generateFile(dir </> fn, content)
+
+    Files.generateFile(dir </> fn, content)
     let ctn =
         File.ReadAllLines fsproj
-        |> Seq.map (fun f -> if f.Trim().StartsWith """<Compile Include="Program.fs" />""" then sprintf "    <Compile Include=\"%s\" />\n%s" fn f  else f  )
+        |> Seq.map (fun f -> if f.Trim().StartsWith """<Compile Include="Program.fs" />""" then sprintf "    <Compile Include=\"%s\" />\n%s" fn f else f  )
         |> String.concat "\n"
-    updateFile(fsproj, ctn)
+    Files.updateFile(fsproj, ctn)
 
 
     ()
@@ -441,17 +442,17 @@ let generateHtml (name : string) (names : string) (fields : Parameter []) =
     let controllerFn = (sprintf "%sController.fs" names)
     let repositoryFn = (sprintf "%sRepository.fs" names)
 
+    Files.generateFile(dir </> modelFn, generateModel name names fields)
+    Files.generateFile(dir </> viewsFn,  generateView name names fields)
+    Files.generateFile(dir </> repositoryFn, generateRepository name names fields)
+    Files.generateFile(dir </> controllerFn,  generateViewsController name names fields)
 
-    generateFile(dir </> modelFn, generateModel name names fields)
-    generateFile(dir </> viewsFn,  generateView name names fields)
-    generateFile(dir </> repositoryFn, generateRepository name names fields)
-    generateFile(dir </> controllerFn,  generateViewsController name names fields)
 
     let ctn =
         File.ReadAllLines fsProjPath
         |> Seq.map (fun f -> if f.Trim().StartsWith """<Compile Include="Router.fs" />""" then sprintf "    <Compile Include=\"%s\\%s\" />\n    <Compile Include=\"%s\\%s\" />\n    <Compile Include=\"%s\\%s\" />\n    <Compile Include=\"%s\\%s\" />\n%s" names modelFn names viewsFn names repositoryFn names controllerFn f  else f  )
         |> String.concat "\n"
-    updateFile(fsProjPath, ctn)
+    Files.updateFile(fsProjPath, ctn)
 
     generateMigration name names fields
 
@@ -478,15 +479,15 @@ let generateJson (name : string) (names : string) (fields : Parameter []) =
     let repositoryFn = (sprintf "%sRepository.fs" names)
 
 
-    generateFile(dir </> modelFn, generateModel name names fields)
-    generateFile(dir </> repositoryFn, generateRepository name names fields)
-    generateFile(dir </> controllerFn, generateJsonController name names fields)
+    Files.generateFile(dir </> modelFn, generateModel name names fields)
+    Files.generateFile(dir </> repositoryFn, generateRepository name names fields)
+    Files.generateFile(dir </> controllerFn, generateJsonController name names fields)
 
     let ctn =
         File.ReadAllLines fsProjPath
         |> Seq.map (fun f -> if f.Trim().StartsWith """<Compile Include="Router.fs" />""" then sprintf "    <Compile Include=\"%s\\%s\" />\n     <Compile Include=\"%s\\%s\" />\n     <Compile Include=\"%s\\%s\" />\n%s" names modelFn names repositoryFn names controllerFn f  else f  )
         |> String.concat "\n"
-    updateFile(fsProjPath, ctn)
+    Files.updateFile(fsProjPath, ctn)
 
 
     generateMigration name names fields
@@ -510,15 +511,15 @@ let generateMdl (name : string) (names : string) (fields : Parameter []) =
     let modelFn = (sprintf "%sModel.fs" names)
     let repositoryFn = (sprintf "%sRepository.fs" names)
 
-    generateFile(dir </> modelFn, generateModel name names fields)
-    generateFile(dir </> repositoryFn, generateRepository name names fields)
+    Files.generateFile(dir </> modelFn, generateModel name names fields)
+    Files.generateFile(dir </> repositoryFn, generateRepository name names fields)
 
 
     let ctn =
         File.ReadAllLines fsProjPath
         |> Seq.map (fun f -> if f.Trim().StartsWith """<Compile Include="Router.fs" />""" then sprintf "    <Compile Include=\"%s\\%s\" />\n    <Compile Include=\"%s\\%s\" />\n%s" names modelFn names repositoryFn  f  else f  )
         |> String.concat "\n"
-    updateFile(fsProjPath, ctn)
+    Files.updateFile(fsProjPath, ctn)
 
 
     generateMigration name names fields
