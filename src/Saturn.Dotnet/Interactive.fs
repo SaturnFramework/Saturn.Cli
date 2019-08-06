@@ -52,8 +52,10 @@ let start path =
             | "ls" ->
                 cnt <-
                     File.ReadAllLines(mapPath)
-                    |> Array.map (fun n -> n.Split ',')
-                    |> Array.map (fun [|p;w;v|] -> (w.Trim(), p.Trim(), if String.IsNullOrWhiteSpace v then None else Some (v.Trim())))
+                    |> Array.map (
+                        (fun n -> n.Split ',')
+                        >> (fun [|p;w;v|] -> (w.Trim(), p.Trim(), if String.IsNullOrWhiteSpace v then None else Some (v.Trim())))
+                    )
                     |> Array.where (fun (w,_,_) -> w <> "NotFoundHandler")
                     |> Array.sortBy(fun (_,p,_) -> p)
                 let table = ConsoleTable("Http Method", "Url", "Controller version")
