@@ -12,8 +12,12 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
-    <Compile Include="Interactive.fs" />
+    <Compile Include="Strings.fs" />
     <Compile Include="Models.fs" />
+    <Compile Include="Paths.fs" />
+    <Compile Include="Files.fs" />
+    <Compile Include="CodeGeneration.fs" />
+    <Compile Include="Interactive.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
   <Import Project="..\..\.paket\Paket.Restore.targets" />
