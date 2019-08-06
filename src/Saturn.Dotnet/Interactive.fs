@@ -54,7 +54,9 @@ let start path =
                     File.ReadAllLines(mapPath)
                     |> Array.map (
                         (fun n -> n.Split ',')
-                        >> (fun [|p;w;v|] -> (w.Trim(), p.Trim(), if String.IsNullOrWhiteSpace v then None else Some (v.Trim())))
+                        >> function
+                        | [|p; w; v;|] ->  (w.Trim(), p.Trim(), if String.IsNullOrWhiteSpace v then None else Some (v.Trim()))
+                        | _ -> "", "", None
                     )
                     |> Array.where (fun (w,_,_) -> w <> "NotFoundHandler")
                     |> Array.sortBy(fun (_,p,_) -> p)
@@ -131,6 +133,7 @@ let start path =
                             | "DELETE" -> Delete
                             | "PUT" -> Put
                             | "PATCH" -> Patch
+                            | _ -> failwith "Invalid Method"
                         let res =
                             Request.createUrl method uri
                             |> fun n ->
