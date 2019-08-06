@@ -33,14 +33,14 @@ module Validation =
 """     names name fields id id (upper id)
 
 let generateRepository name names (fields : Parameter []) =
-  let id = fields.[0].name
-  let getAllQuery = sprintf "SELECT %s FROM %s" (fields |> Array.map (fun f -> f.name) |> String.concat ", ") names
-  let getByIdQuery = sprintf "SELECT %s FROM %s WHERE %s=@%s" (fields |> Array.map (fun f -> f.name) |> String.concat ", ") names id id
-  let updateQuery = sprintf "UPDATE %s SET %s WHERE %s=@%s" names (fields |> Array.map (fun f -> f.name + " = @" + f.name) |> String.concat ", ") id id
-  let insertQuery = sprintf "INSERT INTO %s(%s) VALUES (%s)" names (fields |> Array.map (fun f -> f.name) |> String.concat ", ") (fields |> Array.map (fun f -> "@" + f.name) |> String.concat ", ")
-  let deleteQuery = sprintf "DELETE FROM %s WHERE %s=@%s" names id id
+    let id = fields.[0].name
+    let getAllQuery = sprintf "SELECT %s FROM %s" (fields |> Array.map (fun f -> f.name) |> String.concat ", ") names
+    let getByIdQuery = sprintf "SELECT %s FROM %s WHERE %s=@%s" (fields |> Array.map (fun f -> f.name) |> String.concat ", ") names id id
+    let updateQuery = sprintf "UPDATE %s SET %s WHERE %s=@%s" names (fields |> Array.map (fun f -> f.name + " = @" + f.name) |> String.concat ", ") id id
+    let insertQuery = sprintf "INSERT INTO %s(%s) VALUES (%s)" names (fields |> Array.map (fun f -> f.name) |> String.concat ", ") (fields |> Array.map (fun f -> "@" + f.name) |> String.concat ", ")
+    let deleteQuery = sprintf "DELETE FROM %s WHERE %s=@%s" names id id
 
-  sprintf """namespace %s
+    sprintf """namespace %s
 
 open Database
 open Microsoft.Data.Sqlite
@@ -78,7 +78,7 @@ module Database =
       return! execute connection "%s" (dict ["id" => id])
     }
 
-"""   names name getAllQuery name getByIdQuery updateQuery insertQuery deleteQuery
+"""  names name getAllQuery name getByIdQuery updateQuery insertQuery deleteQuery
 
 let generateView name names (fields : Parameter []) =
 
@@ -313,7 +313,7 @@ module Controller =
 """      names name name
 
 let generateJsonController (name: string) (names : string) (_ : Parameter []) =
-  sprintf """namespace %s
+    sprintf """namespace %s
 
 open Microsoft.AspNetCore.Http
 open FSharp.Control.Tasks.ContextInsensitive
@@ -398,7 +398,7 @@ module Controller =
     delete deleteAction
   }
 
-"""      names name name
+"""  names name name
 
 
 let generateMigration (name: string) (names : string) (fields : Parameter []) =
