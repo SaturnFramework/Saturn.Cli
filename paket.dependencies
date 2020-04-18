@@ -1,15 +1,17 @@
 source https://www.nuget.org/api/v2
+storage: none
+framework: netcoreapp3.1
 
 nuget FSharp.Core
 nuget ConsoleTables
 nuget Argu
 nuget Http.fs
 
-github fsharp/FAKE modules/Octokit/Octokit.fsx
-
 group Build
   source https://www.nuget.org/api/v2
   storage: none
+  framework: netstandard2.0
+
   nuget Fake.Core.Target
   nuget Fake.Core.Process
   nuget Fake.DotNet.Cli
