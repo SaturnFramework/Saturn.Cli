@@ -1,54 +1,80 @@
-open System.Text.RegularExpressions
+
 // --------------------------------------------------------------------------------------
 // FAKE build script
 // --------------------------------------------------------------------------------------
-#r "./packages/FAKE/tools/FakeLib.dll"
-#load "paket-files/fsharp/FAKE/modules/Octokit/Octokit.fsx"
+#r "paket: groupref build //"
+#load ".fake/build.fsx/intellisense.fsx"
+#if !FAKE
+  #r "netstandard"
+  #r "Facades/netstandard.dll"
+#endif
 
-open Fake.ReleaseNotesHelper
-open Fake.AssemblyInfoFile
-open Fake.Git
-open Fake
-open System
-open Octokit
+open Fake.Core
+open Fake.DotNet
+open Fake.Tools
+open Fake.IO
+open Fake.IO.FileSystemOperators
+open Fake.IO.Globbing.Operators
+open Fake.Core.TargetOperators
+open Fake.Api
 
 // --------------------------------------------------------------------------------------
 // Information about the project to be used at NuGet and in AssemblyInfo files
 // --------------------------------------------------------------------------------------
 
 let project = "Saturn.Dotnet"
+let summary = "A dotnet CLI tool for Saturn projects providing code generation and scaffolding."
 
-let summary = "A dotnet CLI tool for Saturn projects"
-
-let gitOwner = "Krzysztof-Cieslak"
-let gitName = "Saturn.Dotnet"
+let gitOwner = "SaturnFramework"
 let gitHome = "https://github.com/" + gitOwner
+let gitName = "Saturn.Dotnet"
 
+let gitUrl = gitHome + "/" + gitName
 
 // --------------------------------------------------------------------------------------
 // Build variables
 // --------------------------------------------------------------------------------------
 
-let buildDir  = FullName "./build/"
+System.Environment.CurrentDirectory <- __SOURCE_DIRECTORY__
+let release = ReleaseNotes.parse (System.IO.File.ReadAllLines "RELEASE_NOTES.md")
 
-Environment.CurrentDirectory <- __SOURCE_DIRECTORY__
-let release = parseReleaseNotes (IO.File.ReadAllLines "RELEASE_NOTES.md")
+let packageDir = __SOURCE_DIRECTORY__ </> "out"
+let buildDir = __SOURCE_DIRECTORY__ </> "temp"
 
+
+// --------------------------------------------------------------------------------------
+// Helpers
+// --------------------------------------------------------------------------------------
+let isNullOrWhiteSpace = System.String.IsNullOrWhiteSpace
+
+let runTool cmd args workingDir =
+    let arguments = args |> String.split ' ' |> Arguments.OfArgs
+    let r =
+        Command.RawCommand (cmd, arguments)
+        |> CreateProcess.fromCommand
+        |> CreateProcess.withWorkingDirectory workingDir
+        |> Proc.run
+    if r.ExitCode <> 0 then
+        failwithf "Error while running '%s' with args: %s" cmd args
+
+let getBuildParam = Environment.environVar
+
+let DoNothing = ignore
 // --------------------------------------------------------------------------------------
 // Build Targets
 // --------------------------------------------------------------------------------------
 
-Target "Clean" (fun _ ->
-    CleanDirs [buildDir]
+Target.create "Clean" (fun _ ->
+    Shell.cleanDirs [buildDir; packageDir]
 )
 
-Target "AssemblyInfo" (fun _ ->
+Target.create "AssemblyInfo" (fun _ ->
     let getAssemblyInfoAttributes projectName =
-        [ Attribute.Title projectName
-          Attribute.Product project
-          Attribute.Description summary
-          Attribute.Version release.AssemblyVersion
-          Attribute.FileVersion release.AssemblyVersion ]
+        [ AssemblyInfo.Title projectName
+          AssemblyInfo.Product project
+          AssemblyInfo.Description summary
+          AssemblyInfo.Version release.AssemblyVersion
+          AssemblyInfo.FileVersion release.AssemblyVersion ]
 
     let getProjectDetails projectPath =
         let projectName = System.IO.Path.GetFileNameWithoutExtension(projectPath)
@@ -62,97 +88,116 @@ Target "AssemblyInfo" (fun _ ->
     |> Seq.map getProjectDetails
     |> Seq.iter (fun (projFileName, _, folderName, attributes) ->
         match projFileName with
-        | Fsproj -> CreateFSharpAssemblyInfo (folderName </> "AssemblyInfo.fs") attributes
-        | Csproj -> CreateCSharpAssemblyInfo ((folderName </> "Properties") </> "AssemblyInfo.cs") attributes
-        | Vbproj -> CreateVisualBasicAssemblyInfo ((folderName </> "My Project") </> "AssemblyInfo.vb") attributes
-        | Shproj -> ()
+        | proj when proj.EndsWith("fsproj") -> AssemblyInfoFile.createFSharp (folderName </> "AssemblyInfo.fs") attributes
+        | proj when proj.EndsWith("csproj") -> AssemblyInfoFile.createCSharp ((folderName </> "Properties") </> "AssemblyInfo.cs") attributes
+        | proj when proj.EndsWith("vbproj") -> AssemblyInfoFile.createVisualBasic ((folderName </> "My Project") </> "AssemblyInfo.vb") attributes
+        | _ -> ()
         )
 )
 
-Target "Restore" (fun _ ->
-    DotNetCli.Restore id
+Target.create "Restore" (fun _ ->
+    DotNet.restore id ""
 )
 
-Target "Build" (fun _ ->
-    DotNetCli.Build id
+Target.create "Build" (fun _ ->
+    DotNet.build id ""
+)
+
+Target.create "Publish" (fun _ ->
+    DotNet.publish (fun p -> {p with OutputPath = Some buildDir}) "src/Saturn.Dotnet"
 )
 
 // --------------------------------------------------------------------------------------
 // Release Targets
 // --------------------------------------------------------------------------------------
 
+Target.create "Pack" (fun _ ->
 
+    //Pack Saturn global tool
+    Environment.setEnvironVar "Version" release.NugetVersion
+    Environment.setEnvironVar "PackageVersion" release.NugetVersion
 
-Target "Pack" (fun _ ->
-    DotNetCli.Pack (fun p ->
+    Environment.setEnvironVar "Authors" "Krzysztof Cieslak"
+    Environment.setEnvironVar "Copyright" "Copyright 2018-2020 Lambda Factory"
+    Environment.setEnvironVar "Description" summary
+
+    Environment.setEnvironVar "PackageReleaseNotes" (release.Notes |> String.toLines)
+    Environment.setEnvironVar "PackageTags" "F#, Saturn, scaffolding"
+    Environment.setEnvironVar "PackageProjectUrl" gitUrl
+    Environment.setEnvironVar "RepositoryUrl" gitUrl
+    Environment.setEnvironVar "PackageIconUrl" "https://avatars0.githubusercontent.com/u/35305523"
+    Environment.setEnvironVar "PackageLicenseExpression" "MIT"
+
+    DotNet.pack (fun p ->
         { p with
-            WorkingDir = "./src/Saturn.Dotnet"
-            Configuration = "Release";
-            OutputPath = buildDir;
-            AdditionalArgs = [sprintf "/p:Version=%s" release.NugetVersion ]
-        }
-    )
+            OutputPath = Some packageDir
+            Configuration = DotNet.BuildConfiguration.Release
+        }) "src/Saturn.Dotnet"
 )
 
-Target "ReleaseGitHub" (fun _ ->
+Target.create "ReleaseGitHub" (fun _ ->
     let remote =
         Git.CommandHelper.getGitResult "" "remote -v"
         |> Seq.filter (fun (s: string) -> s.EndsWith("(push)"))
         |> Seq.tryFind (fun (s: string) -> s.Contains(gitOwner + "/" + gitName))
         |> function None -> gitHome + "/" + gitName | Some (s: string) -> s.Split().[0]
 
-    StageAll ""
-    Git.Commit.Commit "" (sprintf "Bump version to %s" release.NugetVersion)
-    Branches.pushBranch "" remote (Information.getBranchName "")
+    Git.Staging.stageAll ""
+    Git.Commit.exec "" (sprintf "Bump version to %s" release.NugetVersion)
+    Git.Branches.pushBranch "" remote "master"
 
-    Branches.tag "" release.NugetVersion
-    Branches.pushTag "" remote release.NugetVersion
+
+    Git.Branches.tag "" release.NugetVersion
+    Git.Branches.pushTag "" remote release.NugetVersion
 
     let client =
         let user =
             match getBuildParam "github-user" with
-            | s when not (String.IsNullOrWhiteSpace s) -> s
-            | _ -> getUserInput "Username: "
+            | s when not (isNullOrWhiteSpace s) -> s
+            | _ -> UserInput.getUserInput "Username: "
         let pw =
             match getBuildParam "github-pw" with
-            | s when not (String.IsNullOrWhiteSpace s) -> s
-            | _ -> getUserPassword "Password: "
+            | s when not (isNullOrWhiteSpace s) -> s
+            | _ -> UserInput.getUserPassword "Password: "
 
-        createClient user pw
+        // Git.createClient user pw
+        GitHub.createClient user pw
+    let files = !! (packageDir </> "*.nupkg")
 
-    let file = !! (buildDir </> "*.nupkg") |> Seq.head
     // release on github
-    client
-    |> createDraft gitOwner gitName release.NugetVersion (release.SemVer.PreRelease <> None) release.Notes
-    |> uploadFile file
-    |> releaseDraft
+    let cl =
+        client
+        |> GitHub.draftNewRelease gitOwner gitName release.NugetVersion (release.SemVer.PreRelease <> None) release.Notes
+    (cl,files)
+    ||> Seq.fold (fun acc e -> acc |> GitHub.uploadFile e)
+    |> GitHub.publishDraft//releaseDraft
     |> Async.RunSynchronously
 )
 
-Target "Push" (fun _ ->
+Target.create "Push" (fun _ ->
     let key =
         match getBuildParam "nuget-key" with
-        | s when not (String.IsNullOrWhiteSpace s) -> s
-        | _ -> getUserPassword "NuGet Key: "
-    Paket.Push (fun p -> { p with WorkingDir = buildDir; ApiKey = key }))
+        | s when not (isNullOrWhiteSpace s) -> s
+        | _ -> UserInput.getUserPassword "NuGet Key: "
+    Paket.push (fun p -> { p with WorkingDir = buildDir; ApiKey = key }))
 
 // --------------------------------------------------------------------------------------
 // Build order
 // --------------------------------------------------------------------------------------
-Target "Default" DoNothing
-Target "Release" DoNothing
+Target.create "Default" DoNothing
+Target.create "Release" DoNothing
 
 "Clean"
   ==> "AssemblyInfo"
   ==> "Restore"
   ==> "Build"
-  ==> "Pack"
+  ==> "Publish"
   ==> "Default"
 
-
 "Default"
+  ==> "Pack"
   ==> "ReleaseGitHub"
   ==> "Push"
   ==> "Release"
 
-RunTargetOrDefault "Default"
+Target.runOrDefault "Pack"
