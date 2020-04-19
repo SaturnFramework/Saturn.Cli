@@ -4,10 +4,6 @@
 // --------------------------------------------------------------------------------------
 #r "paket: groupref build //"
 #load ".fake/build.fsx/intellisense.fsx"
-#if !FAKE
-  #r "netstandard"
-  #r "Facades/netstandard.dll"
-#endif
 
 open Fake.Core
 open Fake.DotNet
@@ -22,7 +18,7 @@ open Fake.Api
 // Information about the project to be used at NuGet and in AssemblyInfo files
 // --------------------------------------------------------------------------------------
 
-let project = "Saturn.Dotnet"
+let project = "Saturn.Cli"
 let summary = "A dotnet CLI tool for Saturn projects providing code generation and scaffolding."
 
 let gitOwner = "SaturnFramework"
@@ -103,10 +99,6 @@ Target.create "Build" (fun _ ->
     DotNet.build id ""
 )
 
-Target.create "Publish" (fun _ ->
-    DotNet.publish (fun p -> {p with OutputPath = Some buildDir}) "src/Saturn.Dotnet"
-)
-
 // --------------------------------------------------------------------------------------
 // Release Targets
 // --------------------------------------------------------------------------------------
@@ -132,7 +124,7 @@ Target.create "Pack" (fun _ ->
         { p with
             OutputPath = Some packageDir
             Configuration = DotNet.BuildConfiguration.Release
-        }) "src/Saturn.Dotnet"
+        }) "src/Saturn.Cli"
 )
 
 Target.create "ReleaseGitHub" (fun _ ->
@@ -179,7 +171,7 @@ Target.create "Push" (fun _ ->
         match getBuildParam "nuget-key" with
         | s when not (isNullOrWhiteSpace s) -> s
         | _ -> UserInput.getUserPassword "NuGet Key: "
-    Paket.push (fun p -> { p with WorkingDir = buildDir; ApiKey = key }))
+    Paket.push (fun p -> { p with WorkingDir = buildDir; ApiKey = key; ToolType = ToolType.CreateLocalTool() }))
 
 // --------------------------------------------------------------------------------------
 // Build order
@@ -191,7 +183,6 @@ Target.create "Release" DoNothing
   ==> "AssemblyInfo"
   ==> "Restore"
   ==> "Build"
-  ==> "Publish"
   ==> "Default"
 
 "Default"

@@ -7,7 +7,7 @@ open Models
 open Files
 
 let runMigration (extraArgv: string []) =
-    let baseArgumetns = "run --project ../Migrations/Migrations.fsproj"
+    let baseArgumetns = "run --project src/Migrations/Migrations.fsproj"
     let arguments =
         match extraArgv with
         | [||] -> baseArgumetns
