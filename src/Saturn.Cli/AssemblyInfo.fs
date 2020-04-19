@@ -5,13 +5,13 @@ open System.Reflection
 [<assembly: AssemblyTitleAttribute("Saturn.Cli")>]
 [<assembly: AssemblyProductAttribute("Saturn.Cli")>]
 [<assembly: AssemblyDescriptionAttribute("A dotnet CLI tool for Saturn projects providing code generation and scaffolding.")>]
-[<assembly: AssemblyVersionAttribute("0.9.0.2")>]
-[<assembly: AssemblyFileVersionAttribute("0.9.0.2")>]
+[<assembly: AssemblyVersionAttribute("0.12.1")>]
+[<assembly: AssemblyFileVersionAttribute("0.12.1")>]
 do ()
 
 module internal AssemblyVersionInformation =
     let [<Literal>] AssemblyTitle = "Saturn.Cli"
     let [<Literal>] AssemblyProduct = "Saturn.Cli"
     let [<Literal>] AssemblyDescription = "A dotnet CLI tool for Saturn projects providing code generation and scaffolding."
-    let [<Literal>] AssemblyVersion = "0.9.0.2"
-    let [<Literal>] AssemblyFileVersion = "0.9.0.2"
+    let [<Literal>] AssemblyVersion = "0.12.1"
+    let [<Literal>] AssemblyFileVersion = "0.12.1"

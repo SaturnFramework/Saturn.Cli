@@ -99,6 +99,10 @@ Target.create "Build" (fun _ ->
     DotNet.build id ""
 )
 
+Target.create "Publish" (fun _ ->
+    DotNet.publish (fun p -> {p with OutputPath = Some buildDir}) ""
+)
+
 // --------------------------------------------------------------------------------------
 // Release Targets
 // --------------------------------------------------------------------------------------
@@ -124,7 +128,7 @@ Target.create "Pack" (fun _ ->
         { p with
             OutputPath = Some packageDir
             Configuration = DotNet.BuildConfiguration.Release
-        }) "src/Saturn.Cli"
+        }) ""
 )
 
 Target.create "ReleaseGitHub" (fun _ ->
@@ -186,6 +190,7 @@ Target.create "Release" DoNothing
   ==> "Default"
 
 "Default"
+  ==> "Publish"
   ==> "Pack"
   ==> "ReleaseGitHub"
   ==> "Push"
