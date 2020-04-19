@@ -91,7 +91,7 @@ in order to craft an excellent pull request:
    # Clone your fork of the repo into the current directory
    git clone https://github.com/<your-username>/Saturn.Dotnet
    # Navigate to the newly cloned directory
-   cd Saturn
+   cd Saturn.Dotnet
    # Assign the original repo to a remote called "upstream"
    git remote add upstream https://github.com/Krzysztof-Cieslak/Saturn.Dotnet
    ```
@@ -121,22 +121,16 @@ in order to craft an excellent pull request:
    [interactive rebase](https://help.github.com/articles/about-git-rebase/)
    feature to tidy up your commits before making them public.
 
-5. Make sure all the tests are still passing.
-
-   ```bash
-   ./build.sh Test
-   ```
-
-6. Push your topic branch up to your fork:
+5. Push your topic branch up to your fork:
 
    ```bash
    git push origin <topic-branch-name>
    ```
 
-7. [Open a Pull Request](https://help.github.com/articles/about-pull-requests/)
+6. [Open a Pull Request](https://help.github.com/articles/about-pull-requests/)
     with a clear title and description.
 
-8. If you haven't updated your pull request for a while, you should consider
+7. If you haven't updated your pull request for a while, you should consider
    rebasing on master and resolving any conflicts.
 
    **IMPORTANT**: _Never ever_ merge upstream `master` into your branches. You
