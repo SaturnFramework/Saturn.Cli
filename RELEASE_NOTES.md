@@ -1,3 +1,10 @@
+### 0.12.1 - 19.04.2020
+* Change name to `Saturn.Cli`
+* Pack it as .Net Core 3.1 tool
+* Clean Paket dependencies
+* Refactor code base (by [@ZaymonFC](https://github.com/ZaymonFC))
+* Update infrastructure - repository is now using paket and fake as local tools
+
 ### 0.9.0 - 30.07.2019
 * Add handling of help commands and clean up help messages
 * Fix generated code in views
