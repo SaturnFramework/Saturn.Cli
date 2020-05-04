@@ -2,6 +2,8 @@
 
 `dotnet` CLI tool for [Saturn](https://github.com/SaturnFramework/Saturn) providing code generation and scaffolding.
 
+To install the tool globally run `dotnet tool install saturn.cli -g` in your terminal.
+
 ## Commands
 
 `dotnet saturn` supports following commands:
