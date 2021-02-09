@@ -8,29 +8,56 @@ open Paths
 
 let generateModel name names (fields : Parameter []) =
     let id = fields.[0].name
-    let fields = fields |> Array.map (fun f -> sprintf "%s: %s" f.name f.FSharpType) |> String.concat "\n  "
 
-    sprintf """namespace %s
+    let id_type = fields.[0].typ
+
+    let fields = fields |> Array.map (fun f -> sprintf "%s: %s" f.name f.FSharpType) |> String.concat "\n    "
+
+    let template_int = sprintf """namespace %s
+    
+[<CLIMutable>]
+type %s = {
+    %s
+}
+    
+module Validation =
+    let validate v =
+        let validators = []
+    
+        validators
+        |> List.fold (fun acc e ->
+            match e v with
+            | Some (k,v) -> Map.add k v acc
+            | None -> acc
+        ) Map.empty
+"""
+
+    let template_string = sprintf """namespace %s
 
 [<CLIMutable>]
 type %s = {
-  %s
+    %s
 }
 
 module Validation =
-  let validate v =
-    let validators = [
-      fun u -> if isNull u.%s then Some ("%s", "%s shouldn't be empty") else None
-    ]
+    let validate v =
+        let validators = [
+            fun u -> if isNull u.%s then Some ("%s", "%s shouldn't be empty") else None
+            ]
 
-    validators
-    |> List.fold (fun acc e ->
-      match e v with
-      | Some (k,v) -> Map.add k v acc
-      | None -> acc
-    ) Map.empty
-"""     names name fields id id (upper id)
+        validators
+        |> List.fold (fun acc e ->
+            match e v with
+            | Some (k,v) -> Map.add k v acc
+            | None -> acc
+        ) Map.empty
+"""
 
+    if id_type = Int then
+        template_int names name fields
+    else
+        template_string names name fields id id (upper id)
+                
 let generateRepository name names (fields : Parameter []) =
     let id = fields.[0].name
     let getAllQuery = sprintf "SELECT %s FROM %s" (fields |> Array.map (fun f -> f.name) |> String.concat ", ") names
