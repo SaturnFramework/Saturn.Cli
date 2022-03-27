@@ -27,7 +27,7 @@ let gitUrl = gitHome + "/" + gitName
 // --------------------------------------------------------------------------------------
 
 System.Environment.CurrentDirectory <- __SOURCE_DIRECTORY__
-let release = ReleaseNotes.parse (System.IO.File.ReadAllLines "RELEASE_NOTES.md")
+let release = ReleaseNotes.parse (System.IO.File.ReadAllLines "../RELEASE_NOTES.md")
 
 let packageDir = __SOURCE_DIRECTORY__ </> "out"
 let buildDir = __SOURCE_DIRECTORY__ </> "temp"
@@ -68,13 +68,15 @@ let init args =
 
     Target.create "AssemblyInfo" (fun _ ->
         let getAssemblyInfoAttributes projectName =
-            [ AssemblyInfo.Title projectName
-            AssemblyInfo.Product project
-            AssemblyInfo.Description summary
-            AssemblyInfo.Version release.AssemblyVersion
-            AssemblyInfo.FileVersion release.AssemblyVersion ]
+            [
+                AssemblyInfo.Title projectName
+                AssemblyInfo.Product project
+                AssemblyInfo.Description summary
+                AssemblyInfo.Version release.AssemblyVersion
+                AssemblyInfo.FileVersion release.AssemblyVersion
+            ]
 
-        let getProjectDetails projectPath =
+        let getProjectDetails (projectPath: string) =
             let projectName = System.IO.Path.GetFileNameWithoutExtension(projectPath)
             ( projectPath,
             projectName,
