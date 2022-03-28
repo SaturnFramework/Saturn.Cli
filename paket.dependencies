@@ -1,6 +1,6 @@
-source https://www.nuget.org/api/v2
+source https://api.nuget.org/v3/index.json
 storage: none
-framework: netcoreapp3.1
+framework: net6.0
 
 nuget FSharp.Core
 nuget ConsoleTables
@@ -8,9 +8,8 @@ nuget Argu
 nuget Http.fs
 
 group Build
-  source https://www.nuget.org/api/v2
-  storage: none
-  framework: netstandard2.0
+  source https://api.nuget.org/v3/index.json
+  framework: net6.0
 
   nuget Fake.Core.Target
   nuget Fake.Core.Process
