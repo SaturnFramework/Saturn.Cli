@@ -1,3 +1,7 @@
+### 1.0.1 -- 29.03.2022
+
+* Bump fake release tool
+
 ### 1.0.0 -- 29.03.2022
 
 * Pack as a .NET 6 tool
