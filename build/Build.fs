@@ -18,7 +18,7 @@ let summary = "A dotnet CLI tool for Saturn projects providing code generation a
 
 let gitOwner = "SaturnFramework"
 let gitHome = "https://github.com/" + gitOwner
-let gitName = "Saturn.Dotnet"
+let gitName = "Saturn.Cli"
 
 let gitUrl = gitHome + "/" + gitName
 
