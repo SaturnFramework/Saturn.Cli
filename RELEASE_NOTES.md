@@ -1,3 +1,7 @@
+### 1.0.0 -- 29.03.2022
+
+* Pack as a .NET 6 tool
+
 ### 0.12.1 - 19.04.2020
 * Change name to `Saturn.Cli`
 * Pack it as .Net Core 3.1 tool
