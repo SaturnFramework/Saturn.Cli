@@ -190,7 +190,7 @@ let init args =
     let dependences =
         [
             "Clean" ==> "AssemblyInfo" ==> "Restore" ==> "Build" ==> "Default"
-            "Default" ==> "Publish" ==> "Pack" ==> "ReleaseGitHub" ==> "Push" ==> "Release"
+            "Default" ==> "Publish" ==> "Pack" ==> "Push" ==> "Release"
         ]
 
     ()
