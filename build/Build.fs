@@ -132,7 +132,7 @@ let init args =
             { p with
                 OutputPath = Some packageDir
                 Configuration = DotNet.BuildConfiguration.Release
-            }) ""
+            }) $"{__SOURCE_DIRECTORY__}/../src/Saturn.Cli/"
     )
 
     Target.create "ReleaseGitHub" (fun _ ->
