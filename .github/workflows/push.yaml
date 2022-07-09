@@ -41,4 +41,4 @@ jobs:
         artifacts: build/*.nupkg
         token: ${{ secrets.GITHUB_TOKEN }}
         generateReleaseNotes: true
- 
+
