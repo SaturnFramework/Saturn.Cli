@@ -1,3 +1,7 @@
+### 1.0.2 -- 09.07.2022
+
+* Let's see if we can get it to work this time
+
 ### 1.0.1 -- 29.03.2022
 
 * Bump fake release tool
