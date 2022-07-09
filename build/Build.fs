@@ -176,7 +176,7 @@ let init args =
 
     Target.create "Push" (fun _ ->
         let key =
-            match getBuildParam "NUGET_KEY" with
+            match getBuildParam "nuget_key" with
             | s when not (isNullOrWhiteSpace s) -> s
             | _ -> UserInput.getUserPassword "NuGet Key: "
         Paket.push (fun p -> { p with WorkingDir = packageDir; ApiKey = key; ToolType = ToolType.CreateLocalTool() }))
