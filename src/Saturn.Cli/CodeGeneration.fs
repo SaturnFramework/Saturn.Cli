@@ -44,7 +44,6 @@ let generateRepository name names (fields : Parameter []) =
 open Database
 open Microsoft.Data.Sqlite
 open System.Threading.Tasks
-open FSharp.Control.Tasks.ContextInsensitive
 
 module Database =
   let getAll connectionString : Task<Result<%s seq, exn>> =
@@ -104,7 +103,7 @@ let generateView name names (fields : Parameter []) =
     sprintf """namespace %s
 
 open Microsoft.AspNetCore.Http
-open Giraffe.GiraffeViewEngine
+open Giraffe.ViewEngine
 open Saturn
 
 module Views =
@@ -207,7 +206,6 @@ let generateViewsController (name: string) (names : string) (_ : Parameter []) =
   sprintf """namespace %s
 
 open Microsoft.AspNetCore.Http
-open FSharp.Control.Tasks.ContextInsensitive
 open Config
 open Saturn
 
@@ -315,7 +313,6 @@ let generateJsonController (name: string) (names : string) (_ : Parameter []) =
     sprintf """namespace %s
 
 open Microsoft.AspNetCore.Http
-open FSharp.Control.Tasks.ContextInsensitive
 open Config
 open Saturn
 
