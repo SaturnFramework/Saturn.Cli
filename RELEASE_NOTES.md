@@ -1,3 +1,7 @@
+### 1.0.5 -- 24.12.2022
+
+* Support running on .NET 7 runtimes via RollForward
+
 ### 1.0.4 -- 09.07.2022
 
 * lol
